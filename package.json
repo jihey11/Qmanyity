@@ -1,0 +1,9 @@
+{
+  "name": "qmanyity",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "mongodb": "^7.0.0"
+  }
+}
