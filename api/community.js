@@ -15,6 +15,11 @@ import {
   guardApiRequest
 } from "../lib/api.js";
 
+import {
+  loadUserCharacterMap,
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 
 
@@ -663,8 +668,15 @@ async function ensureExistingGlobalItemsInFeed(
 function serializeCommunityFeedItem(
   item,
   user,
-  myVoteMap = new Map()
+  myVoteMap = new Map(),
+  characterMap = new Map()
 ) {
+
+  const senderCharacter =
+    item.senderCharacter ||
+    characterMap.get(String(item.senderId || "")) ||
+    normalizeCharacterState(null);
+
 
   if (
     item.status ===
@@ -724,6 +736,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -755,6 +769,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -809,6 +825,8 @@ function serializeCommunityFeedItem(
     nickname:
       item.senderNickname ||
       "사용자",
+    character:
+      senderCharacter,
     text:
       item.text ||
       "",
@@ -1325,13 +1343,21 @@ async function messages(
       );
 
 
+    const communityCharacterMap =
+      await loadUserCharacterMap(
+        db,
+        list.map(item => item.senderId).filter(Boolean)
+      );
+
+
     const items =
       list.map(
         item =>
           serializeCommunityFeedItem(
             item,
             user,
-            myVoteMap
+            myVoteMap,
+            communityCharacterMap
           )
       );
 
@@ -1501,6 +1527,11 @@ async function sendMessage(
 
     messageDocument._id =
       insertResult.insertedId;
+
+    messageDocument.senderCharacter =
+      normalizeCharacterState(
+        user.character
+      );
 
 
     // 클라이언트가 전체 메시지 목록을 다시 조회하지 않고

@@ -6,10 +6,13 @@
 
 <meta
   name="viewport"
-  content="width=device-width, initial-scale=1.0"
+  content="width=device-width, initial-scale=1.0, viewport-fit=cover"
 >
 
 <title>Qmanyity</title>
+
+<link rel="preload" href="/assets/character/base.png" as="image">
+<link rel="preload" href="/assets/character/expressions/default.png" as="image">
 
 <style>
 
@@ -586,6 +589,132 @@ button:disabled {
   background: #dbeafe;
 
   font-size: 34px;
+}
+
+/* =========================================================
+   사용자 캐릭터 레이어
+
+   모든 캐릭터/표정/코스튬 PNG는 같은 캔버스 크기를 사용한다.
+   현재 기본 캔버스: 692 x 638
+
+   뒤 장식 -> 기본 몸 -> 옷 -> 표정 -> 얼굴 장식 -> 머리 장식
+   -> 앞 장식 순서로 겹쳐진다.
+========================================================= */
+
+.profile-avatar,
+.mypage-avatar {
+  background: transparent;
+  overflow: visible;
+}
+
+.character-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex-shrink: 0;
+}
+
+.character-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  image-rendering: pixelated;
+}
+
+.character-layer[data-character-layer="back"] {
+  z-index: 1;
+}
+
+.character-layer[data-character-layer="base"] {
+  z-index: 10;
+}
+
+.character-layer[data-character-layer="body"] {
+  z-index: 20;
+}
+
+.character-layer[data-character-layer="expression"] {
+  z-index: 30;
+}
+
+.character-layer[data-character-layer="face"] {
+  z-index: 40;
+}
+
+.character-layer[data-character-layer="head"] {
+  z-index: 50;
+}
+
+.character-layer[data-character-layer="front"] {
+  z-index: 60;
+}
+
+
+/* 다른 사용자의 공개 캐릭터 표시용 작은 아바타 */
+.public-character-avatar {
+  width: 38px;
+  height: 35px;
+  flex: 0 0 auto;
+}
+
+.public-character-avatar.small {
+  width: 30px;
+  height: 28px;
+}
+
+.public-user-line {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.board-card-author-row,
+.board-comment-author-row,
+.community-message-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .public-character-avatar {
+    width: 34px;
+    height: 31px;
+  }
+
+  .public-character-avatar.small {
+    width: 28px;
+    height: 26px;
+  }
+}
+
+
+.ranking-user-with-character {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.podium-character {
+  width: 76px;
+  height: 70px;
+  margin: 4px auto 8px;
+}
+
+@media (max-width: 720px) {
+  .podium-character {
+    width: 62px;
+    height: 57px;
+  }
 }
 
 .profile-name {
@@ -3591,6 +3720,337 @@ button:disabled {
 }
 
 
+
+
+/* =========================================================
+   관리자 페이지
+========================================================= */
+
+.admin-page {
+  display: none;
+}
+
+.admin-header {
+  margin-bottom: 22px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-header h2 {
+  margin-bottom: 7px;
+  font-size: 28px;
+  font-weight: 900;
+}
+
+.admin-header p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.admin-summary-grid {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.admin-summary-card {
+  padding: 18px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(15, 23, 42, 0.04);
+}
+
+.admin-summary-label {
+  margin-bottom: 7px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.admin-summary-value {
+  color: #172033;
+  font-size: 27px;
+  font-weight: 900;
+}
+
+.admin-tabs {
+  margin-bottom: 18px;
+  padding: 6px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  background: #eaf0f8;
+  border-radius: 14px;
+}
+
+.admin-tab-button {
+  min-width: 135px;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.admin-tab-button.active {
+  background: white;
+  color: #2468ee;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.07);
+}
+
+.admin-panel {
+  display: none;
+  padding: 22px;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.04);
+}
+
+.admin-panel.active {
+  display: block;
+}
+
+.admin-panel-head {
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.admin-panel-head h3 {
+  margin-bottom: 5px;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.admin-panel-head p {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.admin-category-add {
+  margin-bottom: 18px;
+  padding: 15px;
+  display: flex;
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 13px;
+}
+
+.admin-category-add input,
+.admin-search-input,
+.admin-modal-input {
+  width: 100%;
+  min-width: 0;
+  padding: 11px 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  outline: none;
+  background: white;
+  font-size: 14px;
+}
+
+.admin-category-add input:focus,
+.admin-search-input:focus,
+.admin-modal-input:focus {
+  border-color: #2468ee;
+  box-shadow: 0 0 0 3px rgba(36, 104, 238, 0.1);
+}
+
+.admin-toolbar {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-toolbar .admin-search-input {
+  flex: 1;
+}
+
+.admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+.admin-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #edf2f7;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 13px;
+}
+
+.admin-table th {
+  background: #f8fafc;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.admin-table-title {
+  max-width: 300px;
+  color: #172033;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-table-preview {
+  max-width: 360px;
+  color: #64748b;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-badge {
+  display: inline-flex;
+  padding: 5px 8px;
+  align-items: center;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #2468ee;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.admin-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.admin-small-button {
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: white;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-small-button:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.admin-danger-button {
+  border-color: #fecaca;
+  color: #dc2626;
+}
+
+.admin-danger-button:hover {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.admin-empty {
+  padding: 35px 20px;
+  color: #94a3b8;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.admin-message {
+  min-height: 20px;
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.admin-message.error {
+  color: #dc2626;
+}
+
+.admin-message.success {
+  color: #15803d;
+}
+
+.admin-chat-danger-zone {
+  margin-bottom: 15px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff7f7;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+}
+
+.admin-chat-danger-zone strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #991b1b;
+  font-size: 13px;
+}
+
+.admin-chat-danger-zone span {
+  color: #b91c1c;
+  font-size: 12px;
+}
+
+.admin-category-modal-box {
+  width: min(430px, calc(100vw - 30px));
+}
+
+@media(max-width: 900px) {
+  .admin-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-header,
+  .admin-panel-head,
+  .admin-chat-danger-zone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media(max-width: 560px) {
+  .admin-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .admin-category-add,
+  .admin-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+
 /* =========================================================
    반응형
 ========================================================= */
@@ -3720,6 +4180,1007 @@ button:disabled {
       70px 1fr 90px;
   }
 
+}
+
+
+/* =========================================================
+   모바일 사용성 강화
+========================================================= */
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+  max-width: 100%;
+}
+
+.mobile-menu-button {
+  width: 44px;
+  height: 44px;
+  margin-left: 8px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid #dbe3ee;
+  border-radius: 10px;
+  background: white;
+  color: #334155;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.mobile-menu-button:hover {
+  background: #f8fafc;
+}
+
+.mobile-menu-button.open {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #2468ee;
+}
+
+@media (max-width: 720px) {
+
+  /* 공통 터치 / 입력 */
+  button,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  .blue-button,
+  .board-create-button,
+  .community-back-button,
+  .recommend-button,
+  .quiz-play-button,
+  .edit-button,
+  .delete-button,
+  .admin-small-button,
+  .notice-form-cancel,
+  .poll-form-add,
+  .board-detail-owner-button,
+  .board-detail-quiz-button,
+  .board-detail-like-button,
+  .board-comment-submit,
+  .board-comment-edit-save {
+    min-height: 44px;
+  }
+
+  /* 로그인 / 회원가입 */
+  #authPage {
+    min-height: 100dvh;
+    padding: 0;
+    align-items: stretch;
+    background: white;
+  }
+
+  .auth-container {
+    min-height: 100dvh;
+    max-width: none;
+    grid-template-columns: 1fr;
+    align-content: start;
+    overflow: visible;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .intro-panel {
+    min-height: auto;
+    padding: 28px 20px 22px;
+    align-items: center;
+    text-align: center;
+  }
+
+  .intro-logo {
+    width: 52px;
+    height: 52px;
+    margin-bottom: 12px;
+    border-radius: 15px;
+    font-size: 25px;
+  }
+
+  .intro-panel h1 {
+    margin-bottom: 8px;
+    font-size: 29px;
+  }
+
+  .intro-panel p {
+    max-width: 330px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+
+  .form-panel {
+    padding: 24px 20px calc(32px + env(safe-area-inset-bottom, 0px));
+    justify-content: flex-start;
+  }
+
+  .auth-tabs {
+    margin-bottom: 24px;
+  }
+
+  .auth-tab,
+  .auth-submit {
+    min-height: 48px;
+  }
+
+  .form-title {
+    font-size: 25px;
+  }
+
+  .form-description {
+    margin-bottom: 22px;
+    font-size: 14px;
+  }
+
+  .input-group input {
+    height: 52px;
+  }
+
+  /* 상단 메뉴 */
+  .main-header {
+    height: auto;
+    min-height: 64px;
+    padding: 0 12px;
+    padding-top: env(safe-area-inset-top, 0px);
+    overflow: visible;
+  }
+
+  .header-inner {
+    min-width: 0;
+    max-width: none;
+    min-height: 64px;
+    position: relative;
+    gap: 8px;
+  }
+
+  .header-logo {
+    margin-right: auto;
+    font-size: 24px;
+  }
+
+  .mobile-menu-button {
+    display: inline-flex;
+    order: 3;
+  }
+
+  .header-logout {
+    min-height: 44px;
+    order: 2;
+    padding: 0 12px;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  .header-nav {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 1200;
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    max-height: calc(100dvh - 92px - env(safe-area-inset-top, 0px));
+    padding: 8px;
+    overflow-y: auto;
+    border: 1px solid #dbe3ee;
+    border-radius: 14px;
+    background: white;
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16);
+  }
+
+  .header-nav.mobile-open {
+    display: flex;
+  }
+
+  .nav-button {
+    width: 100%;
+    min-height: 46px;
+    padding: 11px 14px;
+    text-align: left;
+    border-radius: 9px;
+    font-size: 14px;
+  }
+
+  /* 메인 콘텐츠 */
+  .main-content {
+    width: calc(100% - 24px);
+    margin: 18px auto calc(56px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .page-header,
+  .quiz-section-header,
+  .board-list-header,
+  .community-section-header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .page-header {
+    margin-bottom: 18px;
+    gap: 12px;
+  }
+
+  .page-header h2,
+  .admin-header h2 {
+    font-size: 24px;
+  }
+
+  .page-header p,
+  .admin-header p {
+    font-size: 13px;
+  }
+
+  .page-header > .blue-button,
+  .page-header > button:not(.mobile-menu-button) {
+    width: 100%;
+  }
+
+  /* 홈 */
+  .recommend-card {
+    min-height: 0;
+    padding: 18px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .recommend-title {
+    font-size: 19px;
+    line-height: 1.45;
+  }
+
+  .recommend-button {
+    width: 100%;
+  }
+
+  .home-top-grid {
+    gap: 12px;
+  }
+
+  .profile-card,
+  .filter-card {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .profile-card {
+    gap: 15px;
+  }
+
+  .profile-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 28px;
+  }
+
+  .category-list {
+    margin: 0 -2px;
+    padding: 2px 2px 8px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .category-button {
+    min-height: 42px;
+    flex: 0 0 auto;
+    padding: 8px 15px;
+  }
+
+  .sort-card {
+    padding: 12px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sort-label,
+  .sort-button {
+    flex: 0 0 auto;
+  }
+
+  .sort-button {
+    min-height: 40px;
+  }
+
+  .quiz-grid,
+  .board-grid {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .quiz-card,
+  .board-card {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .quiz-card-title,
+  .board-card-title {
+    font-size: 17px;
+  }
+
+  .quiz-card-actions,
+  .my-quiz-actions {
+    gap: 8px;
+  }
+
+  /* 마이페이지 */
+  .mypage-layout {
+    grid-template-columns: 1fr;
+    gap: 13px;
+  }
+
+  .mypage-card {
+    padding: 18px;
+  }
+
+  .mypage-profile-head {
+    gap: 14px;
+  }
+
+  .mypage-score-grid,
+  .mypage-shortcut-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mypage-setting-row {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .mypage-setting-value {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .mypage-editor-actions {
+    width: 100%;
+  }
+
+  .mypage-editor-actions button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  /* 커뮤니티 선택 */
+  .community-choice-panel {
+    min-height: 0;
+    padding: 16px;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .community-choice-card {
+    min-height: 145px;
+    padding: 22px 18px;
+  }
+
+  .community-choice-title {
+    font-size: 22px;
+  }
+
+  .community-page-actions,
+  .board-page-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .community-page-actions > button,
+  .board-page-actions > button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  /* 게시판 */
+  .board-toolbar {
+    padding: 13px;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .board-filter-group {
+    grid-template-columns: 1fr;
+  }
+
+  .board-select,
+  .board-search-input {
+    min-height: 48px;
+  }
+
+  .board-detail-card {
+    padding: 18px 15px;
+  }
+
+  .board-detail-title {
+    font-size: 22px;
+    overflow-wrap: anywhere;
+  }
+
+  .board-detail-meta,
+  .board-detail-stats,
+  .board-detail-owner-actions {
+    flex-wrap: wrap;
+  }
+
+  .board-detail-owner-actions {
+    width: 100%;
+  }
+
+  .board-detail-owner-button {
+    flex: 1 1 120px;
+  }
+
+  .board-detail-content {
+    font-size: 14px;
+    line-height: 1.75;
+  }
+
+  .board-detail-quiz {
+    padding: 14px;
+  }
+
+  .board-comment-form {
+    padding: 12px;
+  }
+
+  .board-comment-form-bottom,
+  .board-comment-edit-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .board-comment-submit,
+  .board-comment-edit-save,
+  .board-comment-edit-cancel {
+    width: 100%;
+  }
+
+  .board-comment-item-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  /* 전체 커뮤니티 */
+  .community-layout {
+    min-height: 0;
+  }
+
+  .community-main {
+    padding: 14px;
+  }
+
+  .community-header h3 {
+    font-size: 19px;
+  }
+
+  .community-tabs {
+    margin: 13px 0;
+    padding-bottom: 4px;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .community-tab {
+    min-height: 42px;
+    flex: 0 0 auto;
+  }
+
+  .community-message-list {
+    height: min(54dvh, 500px);
+    min-height: 330px;
+    padding: 12px;
+  }
+
+  .community-message {
+    max-width: 90%;
+  }
+
+  .message-bubble {
+    font-size: 14px;
+    text-align: left;
+  }
+
+  .community-message-form {
+    position: sticky;
+    bottom: env(safe-area-inset-bottom, 0px);
+    z-index: 3;
+    padding-top: 8px;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    background: white;
+  }
+
+  .community-message-form input,
+  .community-message-form button {
+    min-height: 48px;
+  }
+
+  .community-message-form button {
+    padding: 0 12px;
+  }
+
+  /* 모달을 모바일에서는 하단 시트 형태로 */
+  .modal-background {
+    padding: 10px 0 0;
+    align-items: flex-end;
+  }
+
+  .modal-box,
+  .ranking-modal-box,
+  .admin-category-modal-box {
+    width: 100%;
+    max-width: none;
+    max-height: calc(94dvh - env(safe-area-inset-top, 0px));
+    padding: 20px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+  }
+
+  .modal-header,
+  .ranking-modal-header {
+    margin-bottom: 18px;
+    padding-bottom: 14px;
+    gap: 10px;
+  }
+
+  .modal-header h2,
+  .ranking-modal-header h2 {
+    font-size: 22px;
+  }
+
+  .modal-close,
+  .ranking-close {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    min-height: 48px;
+  }
+
+  .question-type-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .question-type-card {
+    min-height: 88px;
+  }
+
+  .inline-input {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inline-input button {
+    min-height: 44px;
+  }
+
+  .notice-form-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .poll-form-option-row {
+    grid-template-columns: minmax(0, 1fr) 44px;
+  }
+
+  /* 랭킹 */
+  .ranking-summary {
+    margin: 18px 0 20px;
+    padding: 16px;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ranking-summary-right {
+    text-align: left;
+  }
+
+  .podium-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .podium-card,
+  .podium-card.first,
+  .podium-card.third {
+    min-height: 150px;
+    padding: 18px;
+  }
+
+  .ranking-table-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .ranking-row {
+    min-height: 62px;
+    padding: 12px;
+    grid-template-columns: 52px minmax(0, 1fr) 72px;
+    gap: 8px;
+  }
+
+  .rank-user-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 관리자 */
+  .admin-header,
+  .admin-panel-head,
+  .admin-chat-danger-zone {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .admin-summary-card {
+    padding: 14px;
+  }
+
+  .admin-summary-value {
+    font-size: 23px;
+  }
+
+  .admin-tabs {
+    margin: 0 -2px 14px;
+    padding: 5px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-tab-button {
+    min-width: 118px;
+    min-height: 44px;
+  }
+
+  .admin-panel {
+    padding: 15px;
+  }
+
+  .admin-category-add,
+  .admin-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-category-add button,
+  .admin-toolbar button,
+  .admin-chat-danger-zone button {
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .admin-table-wrap {
+    margin: 0 -1px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .admin-table {
+    min-width: 640px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 11px 10px;
+  }
+
+  .admin-row-actions {
+    flex-wrap: wrap;
+  }
+
+  /* 빈 상태 */
+  .empty-box,
+  .admin-empty {
+    padding: 30px 16px;
+  }
+}
+
+@media (max-width: 420px) {
+  .main-content {
+    width: calc(100% - 18px);
+  }
+
+  .header-logout {
+    padding: 0 9px;
+    font-size: 11px;
+  }
+
+  .mobile-menu-button {
+    margin-left: 2px;
+  }
+
+  .profile-card {
+    align-items: flex-start;
+  }
+
+  .mypage-profile-head {
+    align-items: flex-start;
+  }
+
+  .mypage-activity-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .mypage-activity-box {
+    padding: 12px 5px;
+  }
+
+  .mypage-activity-label {
+    font-size: 10px;
+  }
+
+  .mypage-activity-value {
+    font-size: 19px;
+  }
+
+  .community-message-form {
+    grid-template-columns: minmax(0, 1fr) 64px;
+  }
+
+  .ranking-row {
+    grid-template-columns: 44px minmax(0, 1fr) 64px;
+    padding: 10px 8px;
+  }
+
+  .admin-summary-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+
+/* =========================================================
+   모바일 실제 기기 레이아웃 보정
+   - iOS/Android에서 카드 폭이 서로 달라 보이는 현상 방지
+   - 정렬 버튼이 화면 밖으로 잘리는 현상 방지
+   - 홈 영역의 가로 오버플로우를 내부 요소에만 제한
+========================================================= */
+@media (max-width: 720px) {
+
+  html,
+  body,
+  #mainPage {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  body,
+  #mainPage {
+    overflow-x: hidden;
+  }
+
+  .main-header {
+    width: 100%;
+    max-width: 100%;
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+  }
+
+  .header-inner,
+  .header-logo,
+  .header-nav {
+    min-width: 0;
+  }
+
+  .header-logo {
+    max-width: calc(100% - 126px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* calc 폭 대신 패딩 방식으로 실제 모바일 viewport에 정확히 맞춘다. */
+  .main-content {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 18px 0 calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-left: max(12px, env(safe-area-inset-left, 0px));
+    padding-right: max(12px, env(safe-area-inset-right, 0px));
+    overflow-x: hidden;
+  }
+
+  #homeContent,
+  #homeContent > section,
+  .home-top-grid,
+  .home-top-grid > *,
+  .recommend-card,
+  .profile-card,
+  .filter-card,
+  .sort-card,
+  .quiz-grid,
+  .quiz-grid > *,
+  .quiz-card,
+  .quiz-section-header {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .recommend-card > div,
+  .profile-card > div,
+  .filter-card > div,
+  .quiz-card > div,
+  .quiz-card-title-row,
+  .quiz-card-bottom {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .recommend-title,
+  .recommend-meta,
+  .profile-name,
+  .quiz-card-title,
+  .quiz-author,
+  .quiz-category,
+  .quiz-stats {
+    overflow-wrap: anywhere;
+    word-break: keep-all;
+  }
+
+  /* 카테고리는 카드 밖으로 페이지 전체를 밀어내지 않게 내부에서만 스크롤 */
+  .category-list {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    margin: 0;
+    padding: 2px 0 7px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+  }
+
+  /* 정렬은 모바일에서 2열 배치: 마지막 버튼이 잘려 보이지 않게 한다. */
+  .sort-card {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 9px;
+    overflow: visible;
+  }
+
+  .sort-label {
+    grid-column: 1 / -1;
+    width: 100%;
+    margin: 0 0 2px;
+  }
+
+  .sort-button {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 9px 8px;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .quiz-section-header {
+    gap: 4px;
+  }
+
+  .quiz-section-header h2,
+  .quiz-count {
+    width: 100%;
+  }
+
+  .quiz-card-bottom {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .like-button {
+    min-height: 44px;
+    flex: 1 1 120px;
+    text-align: left;
+  }
+
+  .quiz-play-button {
+    min-height: 44px;
+    flex: 1 1 150px;
+    white-space: normal;
+  }
+
+  /* 다른 주요 페이지도 모바일 viewport 밖으로 밀리지 않도록 공통 보정 */
+  #myPageContent,
+  #adminContent,
+  #communityChoiceContent,
+  #boardContent,
+  #boardPostDetailContent,
+  #communityContent,
+  #rankingContent,
+  #myQuizContent {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .mypage-layout,
+  .mypage-card,
+  .board-toolbar,
+  .board-grid,
+  .board-card,
+  .board-detail-card,
+  .community-choice-panel,
+  .community-layout,
+  .community-main,
+  .admin-content,
+  .admin-panel,
+  .ranking-summary,
+  .ranking-list {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 420px) {
+  .main-content {
+    width: 100%;
+    padding-left: max(9px, env(safe-area-inset-left, 0px));
+    padding-right: max(9px, env(safe-area-inset-right, 0px));
+  }
+
+  .main-header {
+    padding-left: max(9px, env(safe-area-inset-left, 0px));
+    padding-right: max(9px, env(safe-area-inset-right, 0px));
+  }
+
+  .recommend-card,
+  .profile-card,
+  .filter-card,
+  .quiz-card {
+    padding: 16px;
+  }
+
+  .recommend-title {
+    font-size: 18px;
+  }
+
+  .quiz-card-bottom {
+    flex-direction: column;
+  }
+
+  .like-button,
+  .quiz-play-button {
+    width: 100%;
+    flex-basis: auto;
+    text-align: center;
+  }
 }
 
 </style>
@@ -3986,7 +5447,7 @@ button:disabled {
 </div>
 
 
-<nav class="header-nav">
+<nav id="mainNavigation" class="header-nav">
 
   <button
     id="homeNav"
@@ -4061,12 +5522,25 @@ button:disabled {
     class="nav-button"
     type="button"
     style="display:none;"
-    onclick="notReady('관리자')"
+    onclick="showAdmin()"
   >
     관리자
   </button>
 
 </nav>
+
+
+<button
+  id="mobileMenuButton"
+  class="mobile-menu-button"
+  type="button"
+  aria-label="메뉴 열기"
+  aria-expanded="false"
+  aria-controls="mainNavigation"
+  onclick="toggleMobileMenu()"
+>
+  <span class="mobile-menu-icon" aria-hidden="true">☰</span>
+</button>
 
 
 <button
@@ -4138,7 +5612,20 @@ button:disabled {
 <div class="profile-card">
 
   <div class="profile-avatar">
-    🙂
+    <div
+      class="character-stage"
+      data-character-stage
+      role="img"
+      aria-label="사용자 캐릭터"
+    >
+      <img class="character-layer" data-character-layer="back" alt="" hidden>
+      <img class="character-layer" data-character-layer="base" src="/assets/character/base.png" alt="">
+      <img class="character-layer" data-character-layer="body" alt="" hidden>
+      <img class="character-layer" data-character-layer="expression" src="/assets/character/expressions/default.png" alt="">
+      <img class="character-layer" data-character-layer="face" alt="" hidden>
+      <img class="character-layer" data-character-layer="head" alt="" hidden>
+      <img class="character-layer" data-character-layer="front" alt="" hidden>
+    </div>
   </div>
 
 
@@ -4332,7 +5819,20 @@ button:disabled {
             id="myPageAvatar"
             class="mypage-avatar"
           >
-            Q
+            <div
+      class="character-stage"
+      data-character-stage
+      role="img"
+      aria-label="사용자 캐릭터"
+    >
+      <img class="character-layer" data-character-layer="back" alt="" hidden>
+      <img class="character-layer" data-character-layer="base" src="/assets/character/base.png" alt="">
+      <img class="character-layer" data-character-layer="body" alt="" hidden>
+      <img class="character-layer" data-character-layer="expression" src="/assets/character/expressions/default.png" alt="">
+      <img class="character-layer" data-character-layer="face" alt="" hidden>
+      <img class="character-layer" data-character-layer="head" alt="" hidden>
+      <img class="character-layer" data-character-layer="front" alt="" hidden>
+    </div>
           </div>
 
           <div>
@@ -4628,6 +6128,233 @@ button:disabled {
 
 </div>
 
+
+
+
+<!-- =======================================================
+     관리자
+======================================================= -->
+
+<div
+  id="adminContent"
+  class="admin-page"
+  style="display:none;"
+>
+
+  <div class="admin-header">
+
+    <div>
+      <h2>관리자</h2>
+      <p>
+        카테고리, 전체 퀴즈, 게시물, 전체 채팅을 관리합니다.
+      </p>
+    </div>
+
+    <button
+      id="adminRefreshButton"
+      class="blue-button"
+      type="button"
+      onclick="loadAdminData(true)"
+    >
+      새로고침
+    </button>
+
+  </div>
+
+
+  <div class="admin-summary-grid">
+
+    <div class="admin-summary-card">
+      <div class="admin-summary-label">카테고리</div>
+      <div id="adminCategoryCount" class="admin-summary-value">0</div>
+    </div>
+
+    <div class="admin-summary-card">
+      <div class="admin-summary-label">활성 문제</div>
+      <div id="adminQuizCount" class="admin-summary-value">0</div>
+    </div>
+
+    <div class="admin-summary-card">
+      <div class="admin-summary-label">게시물</div>
+      <div id="adminPostCount" class="admin-summary-value">0</div>
+    </div>
+
+    <div class="admin-summary-card">
+      <div class="admin-summary-label">전체 채팅 메시지</div>
+      <div id="adminChatCount" class="admin-summary-value">0</div>
+    </div>
+
+  </div>
+
+
+  <div class="admin-tabs">
+
+    <button
+      id="adminTabCategories"
+      class="admin-tab-button active"
+      type="button"
+      onclick="selectAdminTab('categories')"
+    >
+      카테고리 관리
+    </button>
+
+    <button
+      id="adminTabQuizzes"
+      class="admin-tab-button"
+      type="button"
+      onclick="selectAdminTab('quizzes')"
+    >
+      문제 관리
+    </button>
+
+    <button
+      id="adminTabPosts"
+      class="admin-tab-button"
+      type="button"
+      onclick="selectAdminTab('posts')"
+    >
+      게시물 관리
+    </button>
+
+    <button
+      id="adminTabChats"
+      class="admin-tab-button"
+      type="button"
+      onclick="selectAdminTab('chats')"
+    >
+      전체 채팅 관리
+    </button>
+
+  </div>
+
+
+  <section id="adminPanelCategories" class="admin-panel active">
+
+    <div class="admin-panel-head">
+      <div>
+        <h3>카테고리 관리</h3>
+        <p>홈과 퀴즈 작성 화면에서 사용하는 기본 카테고리입니다.</p>
+      </div>
+    </div>
+
+    <div class="admin-category-add">
+      <input
+        id="adminNewCategoryName"
+        type="text"
+        maxlength="30"
+        placeholder="추가할 카테고리 이름"
+        onkeydown="if(event.key === 'Enter'){event.preventDefault();createAdminCategory();}"
+      >
+      <button
+        id="adminCategoryCreateButton"
+        class="blue-button"
+        type="button"
+        onclick="createAdminCategory()"
+      >
+        + 카테고리 추가
+      </button>
+    </div>
+
+    <div id="adminCategoryList"></div>
+    <div id="adminCategoryMessage" class="admin-message"></div>
+
+  </section>
+
+
+  <section id="adminPanelQuizzes" class="admin-panel">
+
+    <div class="admin-panel-head">
+      <div>
+        <h3>모든 문제 관리</h3>
+        <p>작성자와 관계없이 모든 활성 문제를 수정하거나 삭제할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="admin-toolbar">
+      <input
+        id="adminQuizSearch"
+        class="admin-search-input"
+        type="search"
+        maxlength="100"
+        placeholder="문제, 작성자, 카테고리 검색"
+        oninput="renderAdminQuizzes()"
+      >
+    </div>
+
+    <div id="adminQuizList"></div>
+    <div id="adminQuizMessage" class="admin-message"></div>
+
+  </section>
+
+
+  <section id="adminPanelPosts" class="admin-panel">
+
+    <div class="admin-panel-head">
+      <div>
+        <h3>게시물 관리</h3>
+        <p>전체 게시물을 확인하고 운영 정책에 맞지 않는 게시물을 삭제할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="admin-toolbar">
+      <input
+        id="adminPostSearch"
+        class="admin-search-input"
+        type="search"
+        maxlength="100"
+        placeholder="게시물 제목, 내용, 작성자 검색"
+        oninput="renderAdminPosts()"
+      >
+    </div>
+
+    <div id="adminPostList"></div>
+    <div id="adminPostMessage" class="admin-message"></div>
+
+  </section>
+
+
+  <section id="adminPanelChats" class="admin-panel">
+
+    <div class="admin-panel-head">
+      <div>
+        <h3>전체 채팅 관리</h3>
+        <p>전체 커뮤니티의 일반 채팅 메시지를 확인하고 삭제할 수 있습니다.</p>
+      </div>
+    </div>
+
+    <div class="admin-chat-danger-zone">
+      <div>
+        <strong>전체 일반 채팅 삭제</strong>
+        <span>공지와 투표는 삭제하지 않고 일반 채팅 메시지만 정리합니다.</span>
+      </div>
+
+      <button
+        id="adminClearChatButton"
+        class="admin-small-button admin-danger-button"
+        type="button"
+        onclick="clearAdminChats()"
+      >
+        전체 채팅 삭제
+      </button>
+    </div>
+
+    <div class="admin-toolbar">
+      <input
+        id="adminChatSearch"
+        class="admin-search-input"
+        type="search"
+        maxlength="100"
+        placeholder="닉네임 또는 채팅 내용 검색"
+        oninput="renderAdminChats()"
+      >
+    </div>
+
+    <div id="adminChatList"></div>
+    <div id="adminChatMessage" class="admin-message"></div>
+
+  </section>
+
+</div>
 
 <!-- =======================================================
      내 퀴즈
@@ -5418,6 +7145,61 @@ button:disabled {
 
 
 
+
+
+<!-- =======================================================
+     관리자 카테고리 수정
+======================================================= -->
+
+<div
+  id="adminCategoryModal"
+  class="modal-background"
+>
+
+  <div class="modal-box admin-category-modal-box">
+
+    <div class="modal-header">
+      <div>
+        <h2>카테고리 수정</h2>
+        <p>카테고리 이름을 변경하면 기존 문제에도 새 이름이 반영됩니다.</p>
+      </div>
+
+      <button
+        class="modal-close"
+        type="button"
+        onclick="closeAdminCategoryModal()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label for="adminCategoryEditName">카테고리 이름</label>
+      <input
+        id="adminCategoryEditName"
+        class="admin-modal-input"
+        type="text"
+        maxlength="30"
+        placeholder="카테고리 이름"
+        onkeydown="if(event.key === 'Enter'){event.preventDefault();saveAdminCategoryEdit();}"
+      >
+    </div>
+
+    <div id="adminCategoryEditMessage" class="admin-message"></div>
+
+    <button
+      id="adminCategoryEditSaveButton"
+      class="modal-submit"
+      type="button"
+      onclick="saveAdminCategoryEdit()"
+    >
+      수정 저장
+    </button>
+
+  </div>
+
+</div>
+
 <!-- =======================================================
      퀴즈 만들기 / 수정
 ======================================================= -->
@@ -6136,6 +7918,27 @@ let createAcceptedAnswers = [];
 let createOxAnswer = "O";
 
 let editingQuizId = null;
+
+// 관리자 페이지 상태
+let adminData = {
+  counts: {
+    categories: 0,
+    quizzes: 0,
+    posts: 0,
+    chats: 0
+  },
+  categories: [],
+  quizzes: [],
+  posts: [],
+  chatMessages: []
+};
+
+let adminDataLoading = false;
+let adminDataLoadedAt = 0;
+let currentAdminTab = "categories";
+let editingAdminCategoryId = null;
+let editingQuizAdminMode = false;
+const ADMIN_DATA_CACHE_MS = 10000;
 
 
 const likeSyncStates =
@@ -6905,6 +8708,18 @@ async function logout() {
     rankingLoadedAt = 0;
     rankingLoading = false;
 
+    adminData = {
+      counts: { categories: 0, quizzes: 0, posts: 0, chats: 0 },
+      categories: [],
+      quizzes: [],
+      posts: [],
+      chatMessages: []
+    };
+    adminDataLoadedAt = 0;
+    adminDataLoading = false;
+    editingAdminCategoryId = null;
+    editingQuizAdminMode = false;
+
 
     currentUser =
       null;
@@ -6994,6 +8809,9 @@ function updateProfile() {
   }
 
 
+  renderUserCharacter();
+
+
   el("profileNickname")
     .textContent =
     currentUser.nickname ||
@@ -7028,7 +8846,8 @@ function hidePages() {
     "communityChoiceContent",
     "boardContent",
     "boardPostDetailContent",
-    "communityContent"
+    "communityContent",
+    "adminContent"
   ]
   .forEach(
     function(id) {
@@ -7050,7 +8869,8 @@ function hidePages() {
     "homeNav",
     "myPageNav",
     "myQuizNav",
-    "communityNav"
+    "communityNav",
+    "adminNav"
   ]
   .forEach(
     function(id) {
@@ -7136,18 +8956,186 @@ function showHome(
 }
 
 
-function getMyPageAvatarText() {
+const DEFAULT_CHARACTER_STATE = Object.freeze({
 
-  const nickname =
-    String(
-      currentUser?.nickname ||
-      "Q"
+  // 기본 몸에는 얼굴을 넣지 않았다.
+  // 표정은 expression 레이어에 따로 표시한다.
+  base:
+    "/assets/character/base.png",
+
+  expression:
+    "/assets/character/expressions/default.png",
+
+  back: null,
+  body: null,
+  face: null,
+  head: null,
+  front: null
+});
+
+
+function getCharacterState(character) {
+
+  const saved =
+    character &&
+    typeof character === "object" &&
+    !Array.isArray(character)
+      ? character
+      : {};
+
+
+  return {
+    back: saved.back || DEFAULT_CHARACTER_STATE.back,
+    base: saved.base || DEFAULT_CHARACTER_STATE.base,
+    body: saved.body || DEFAULT_CHARACTER_STATE.body,
+    expression: saved.expression || DEFAULT_CHARACTER_STATE.expression,
+    face: saved.face || DEFAULT_CHARACTER_STATE.face,
+    head: saved.head || DEFAULT_CHARACTER_STATE.head,
+    front: saved.front || DEFAULT_CHARACTER_STATE.front
+  };
+}
+
+
+function getCurrentCharacterState() {
+  return getCharacterState(
+    currentUser?.character
+  );
+}
+
+
+function getCharacterStageHtml(
+  character,
+  extraClass = "public-character-avatar"
+) {
+
+  const state =
+    getCharacterState(character);
+
+  const layers = [
+    "back",
+    "base",
+    "body",
+    "expression",
+    "face",
+    "head",
+    "front"
+  ];
+
+  const images =
+    layers
+      .map(function(layerName) {
+        const source = state[layerName];
+        if (!source) return "";
+
+        return `
+          <img
+            class="character-layer"
+            data-character-layer="${layerName}"
+            src="${escapeHtml(source)}"
+            alt=""
+            aria-hidden="true"
+          >
+        `;
+      })
+      .join("");
+
+  return `
+    <span
+      class="character-stage ${extraClass}"
+      aria-hidden="true"
+    >
+      ${images}
+    </span>
+  `;
+}
+
+
+function renderCharacterStage(
+  stage,
+  state
+) {
+
+  if (!stage) {
+    return;
+  }
+
+
+  [
+    "back",
+    "base",
+    "body",
+    "expression",
+    "face",
+    "head",
+    "front"
+  ]
+  .forEach(
+    function(layerName) {
+
+      const image =
+        stage.querySelector(
+          `[data-character-layer="${layerName}"]`
+        );
+
+
+      if (!image) {
+        return;
+      }
+
+
+      const source =
+        state[layerName];
+
+
+      if (!source) {
+        image.hidden =
+          true;
+
+        image.removeAttribute(
+          "src"
+        );
+
+        return;
+      }
+
+
+      if (
+        image.getAttribute(
+          "src"
+        ) !== source
+      ) {
+        image.setAttribute(
+          "src",
+          source
+        );
+      }
+
+
+      image.hidden =
+        false;
+    }
+  );
+}
+
+
+function renderUserCharacter() {
+
+  const state =
+    getCurrentCharacterState();
+
+
+  document
+    .querySelectorAll(
+      "[data-character-stage]"
     )
-    .trim();
-
-  return nickname
-    ? nickname.charAt(0).toUpperCase()
-    : "Q";
+    .forEach(
+      function(stage) {
+        renderCharacterStage(
+          stage,
+          state
+        );
+      }
+    );
 }
 
 
@@ -7158,9 +9146,7 @@ function renderMyPage() {
   }
 
 
-  el("myPageAvatar")
-    .textContent =
-    getMyPageAvatarText();
+  renderUserCharacter();
 
 
   el("myPageNickname")
@@ -8368,8 +10354,9 @@ function renderBoardPostDetail(
 
       <div class="board-detail-meta">
         <div>
-          <div class="board-detail-author">
-            작성자 · ${escapeHtml(post.authorNickname || "사용자")}
+          <div class="board-detail-author public-user-line">
+            ${getCharacterStageHtml(post.authorCharacter, "public-character-avatar")}
+            <span>작성자 · ${escapeHtml(post.authorNickname || "사용자")}</span>
           </div>
 
           <div class="board-detail-date">
@@ -8957,8 +10944,9 @@ function renderBoardComments() {
               <article class="board-comment-item">
                 <div class="board-comment-item-head">
                   <div>
-                    <div class="board-comment-author">
-                      ${escapeHtml(comment.authorNickname || "사용자")}
+                    <div class="board-comment-author board-comment-author-row">
+                      ${getCharacterStageHtml(comment.authorCharacter, "public-character-avatar small")}
+                      <span>${escapeHtml(comment.authorNickname || "사용자")}</span>
                     </div>
                     <div class="board-comment-date">
                       ${escapeHtml(formatBoardDateTime(comment.createdAt))}
@@ -9018,13 +11006,16 @@ function renderBoardComments() {
             <article class="board-comment-item">
               <div class="board-comment-item-head">
                 <div>
-                  <div class="board-comment-author">
-                    ${escapeHtml(comment.authorNickname || "사용자")}
-                    ${
-                      edited
-                        ? '<span class="board-comment-edited">수정됨</span>'
-                        : ""
-                    }
+                  <div class="board-comment-author board-comment-author-row">
+                    ${getCharacterStageHtml(comment.authorCharacter, "public-character-avatar small")}
+                    <span>
+                      ${escapeHtml(comment.authorNickname || "사용자")}
+                      ${
+                        edited
+                          ? '<span class="board-comment-edited">수정됨</span>'
+                          : ""
+                      }
+                    </span>
                   </div>
 
                   <div class="board-comment-date">
@@ -11810,8 +13801,9 @@ function renderBoardPosts() {
 
         <div class="board-card-footer">
           <div>
-            <div class="board-card-author">
-              ${escapeHtml(post.authorNickname || "사용자")}
+            <div class="board-card-author board-card-author-row">
+              ${getCharacterStageHtml(post.authorCharacter, "public-character-avatar small")}
+              <span>${escapeHtml(post.authorNickname || "사용자")}</span>
             </div>
 
             <div class="board-card-date">
@@ -12452,12 +14444,13 @@ function renderHomeQuizzes() {
 
 
         <div class="quiz-author">
-
-          등록자:
-          ${escapeHtml(
-            quiz.writer
-          )}
-
+          <span class="public-user-line">
+            ${getCharacterStageHtml(quiz.writerCharacter, "public-character-avatar small")}
+            <span>
+              등록자:
+              ${escapeHtml(quiz.writer)}
+            </span>
+          </span>
         </div>
 
 
@@ -13371,34 +15364,19 @@ function renderRanking(
           </div>
 
 
-          <div>
+          <div class="ranking-user-with-character">
+            ${getCharacterStageHtml(user.character, "public-character-avatar")}
 
-            <div class="rank-user-name">
+            <div>
+              <div class="rank-user-name">
+                ${escapeHtml(user.nickname)}
+                ${mine ? " (나)" : ""}
+              </div>
 
-              ${escapeHtml(
-                user.nickname
-              )}
-
-              ${
-                mine
-                  ? " (나)"
-                  : ""
-              }
-
+              <div class="rank-user-role">
+                ${user.role === "ADMIN" ? "관리자" : "사용자"}
+              </div>
             </div>
-
-
-            <div class="rank-user-role">
-
-              ${
-                user.role ===
-                "ADMIN"
-                  ? "관리자"
-                  : "사용자"
-              }
-
-            </div>
-
           </div>
 
 
@@ -13494,6 +15472,8 @@ function createPodiumHtml(
     <div class="medal">
       ${medal}
     </div>
+
+    ${getCharacterStageHtml(user.character, "podium-character")}
 
     <div class="podium-rank">
       ${user.rank}위
@@ -14120,10 +16100,9 @@ function renderCommunityMessages(
           }"
         >
 
-          <div class="message-name">
-            ${escapeHtml(
-              item.nickname
-            )}
+          <div class="message-name community-message-user">
+            ${getCharacterStageHtml(item.character, "public-character-avatar small")}
+            <span>${escapeHtml(item.nickname)}</span>
           </div>
 
           <div class="message-bubble">
@@ -14335,6 +16314,711 @@ async function sendCommunityMessage() {
     alert(
       "메시지를 보내지 못했습니다."
     );
+  }
+}
+
+
+
+
+/* =========================================================
+   관리자 페이지
+========================================================= */
+
+function setAdminMessage(
+  elementId,
+  message,
+  type = ""
+) {
+  const target = el(elementId);
+  if (!target) return;
+
+  target.textContent = message || "";
+  target.classList.remove("error", "success");
+
+  if (type === "error" || type === "success") {
+    target.classList.add(type);
+  }
+}
+
+
+function getAdminDateText(value) {
+  if (!value) return "-";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+
+  return date.toLocaleString(
+    "ko-KR",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
+}
+
+
+function selectAdminTab(tab) {
+  const allowed = [
+    "categories",
+    "quizzes",
+    "posts",
+    "chats"
+  ];
+
+  currentAdminTab =
+    allowed.includes(tab)
+      ? tab
+      : "categories";
+
+  const mapping = {
+    categories: ["adminTabCategories", "adminPanelCategories"],
+    quizzes: ["adminTabQuizzes", "adminPanelQuizzes"],
+    posts: ["adminTabPosts", "adminPanelPosts"],
+    chats: ["adminTabChats", "adminPanelChats"]
+  };
+
+  Object.entries(mapping)
+    .forEach(function([key, ids]) {
+      el(ids[0])?.classList.toggle("active", key === currentAdminTab);
+      el(ids[1])?.classList.toggle("active", key === currentAdminTab);
+    });
+}
+
+
+function renderAdminSummary() {
+  el("adminCategoryCount").textContent =
+    formatNumber(adminData.counts?.categories || 0);
+
+  el("adminQuizCount").textContent =
+    formatNumber(adminData.counts?.quizzes || 0);
+
+  el("adminPostCount").textContent =
+    formatNumber(adminData.counts?.posts || 0);
+
+  el("adminChatCount").textContent =
+    formatNumber(adminData.counts?.chats || 0);
+}
+
+
+function renderAdminCategories() {
+  const target = el("adminCategoryList");
+  const categories = Array.isArray(adminData.categories)
+    ? adminData.categories
+    : [];
+
+  if (!categories.length) {
+    target.innerHTML = '<div class="admin-empty">등록된 카테고리가 없습니다.</div>';
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>순서</th>
+            <th>카테고리</th>
+            <th>구분</th>
+            <th style="text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${categories.map(function(category, index) {
+            return `
+              <tr>
+                <td>${formatNumber(category.displayOrder || index + 1)}</td>
+                <td><div class="admin-table-title">${escapeHtml(category.name)}</div></td>
+                <td>
+                  <span class="admin-badge">
+                    ${category.isFixed ? "기본" : "추가"}
+                  </span>
+                </td>
+                <td>
+                  <div class="admin-row-actions">
+                    <button
+                      class="admin-small-button"
+                      type="button"
+                      onclick="openAdminCategoryEdit('${escapeHtml(category.id)}')"
+                    >수정</button>
+                    <button
+                      class="admin-small-button admin-danger-button"
+                      type="button"
+                      onclick="deleteAdminCategory('${escapeHtml(category.id)}')"
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function renderAdminQuizzes() {
+  const target = el("adminQuizList");
+  const keyword = String(el("adminQuizSearch")?.value || "")
+    .trim()
+    .toLocaleLowerCase("ko-KR");
+
+  const quizzes = (adminData.quizzes || [])
+    .filter(function(quiz) {
+      if (!keyword) return true;
+      return [quiz.title, quiz.writer, quiz.category, quiz.difficulty]
+        .some(value => String(value || "")
+          .toLocaleLowerCase("ko-KR")
+          .includes(keyword));
+    });
+
+  if (!quizzes.length) {
+    target.innerHTML = '<div class="admin-empty">조건에 맞는 문제가 없습니다.</div>';
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>문제</th>
+            <th>작성자</th>
+            <th>카테고리</th>
+            <th>통계</th>
+            <th>등록일</th>
+            <th style="text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${quizzes.map(function(quiz) {
+            return `
+              <tr>
+                <td>
+                  <div class="admin-table-title" title="${escapeHtml(quiz.title)}">
+                    ${escapeHtml(quiz.title)}
+                  </div>
+                </td>
+                <td>${escapeHtml(quiz.writer || "알 수 없음")}</td>
+                <td>
+                  <span class="admin-badge">${escapeHtml(quiz.category || "기타")}</span>
+                </td>
+                <td>
+                  참여 ${formatNumber(quiz.playCount || 0)} ·
+                  오답 ${formatNumber(quiz.wrongCount || 0)} ·
+                  좋아요 ${formatNumber(quiz.likeCount || 0)}
+                </td>
+                <td>${escapeHtml(getAdminDateText(quiz.createdAt))}</td>
+                <td>
+                  <div class="admin-row-actions">
+                    <button
+                      class="admin-small-button"
+                      type="button"
+                      onclick="openEditQuizModal('${escapeHtml(quiz.id)}', true)"
+                    >수정</button>
+                    <button
+                      class="admin-small-button admin-danger-button"
+                      type="button"
+                      onclick="deleteAdminQuiz('${escapeHtml(quiz.id)}')"
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function renderAdminPosts() {
+  const target = el("adminPostList");
+  const keyword = String(el("adminPostSearch")?.value || "")
+    .trim()
+    .toLocaleLowerCase("ko-KR");
+
+  const posts = (adminData.posts || [])
+    .filter(function(post) {
+      if (!keyword) return true;
+      return [post.title, post.content, post.authorNickname]
+        .some(value => String(value || "")
+          .toLocaleLowerCase("ko-KR")
+          .includes(keyword));
+    });
+
+  if (!posts.length) {
+    target.innerHTML = '<div class="admin-empty">조건에 맞는 게시물이 없습니다.</div>';
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>게시물</th>
+            <th>작성자</th>
+            <th>통계</th>
+            <th>작성일</th>
+            <th style="text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${posts.map(function(post) {
+            return `
+              <tr>
+                <td>
+                  <div class="admin-table-title" title="${escapeHtml(post.title)}">
+                    ${escapeHtml(post.title)}
+                  </div>
+                  <div class="admin-table-preview" title="${escapeHtml(post.content || "")}">
+                    ${escapeHtml(post.content || "내용 없음")}
+                  </div>
+                </td>
+                <td>${escapeHtml(post.authorNickname || "알 수 없음")}</td>
+                <td>
+                  조회 ${formatNumber(post.viewCount || 0)} ·
+                  댓글 ${formatNumber(post.commentCount || 0)} ·
+                  좋아요 ${formatNumber(post.likeCount || 0)}
+                </td>
+                <td>${escapeHtml(getAdminDateText(post.createdAt))}</td>
+                <td>
+                  <div class="admin-row-actions">
+                    <button
+                      class="admin-small-button admin-danger-button"
+                      type="button"
+                      onclick="deleteAdminPost('${escapeHtml(post.id)}')"
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function renderAdminChats() {
+  const target = el("adminChatList");
+  const keyword = String(el("adminChatSearch")?.value || "")
+    .trim()
+    .toLocaleLowerCase("ko-KR");
+
+  const chats = (adminData.chatMessages || [])
+    .filter(function(message) {
+      if (!keyword) return true;
+      return [message.senderNickname, message.text]
+        .some(value => String(value || "")
+          .toLocaleLowerCase("ko-KR")
+          .includes(keyword));
+    });
+
+  if (!chats.length) {
+    target.innerHTML = '<div class="admin-empty">조건에 맞는 채팅이 없습니다.</div>';
+    return;
+  }
+
+  target.innerHTML = `
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>작성자</th>
+            <th>채팅 내용</th>
+            <th>작성일</th>
+            <th style="text-align:right;">관리</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${chats.map(function(message) {
+            return `
+              <tr>
+                <td>${escapeHtml(message.senderNickname || "알 수 없음")}</td>
+                <td>
+                  <div class="admin-table-preview" title="${escapeHtml(message.text || "")}">
+                    ${escapeHtml(message.text || "")}
+                  </div>
+                </td>
+                <td>${escapeHtml(getAdminDateText(message.createdAt))}</td>
+                <td>
+                  <div class="admin-row-actions">
+                    <button
+                      class="admin-small-button admin-danger-button"
+                      type="button"
+                      onclick="deleteAdminChat('${escapeHtml(message.id)}')"
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+
+function renderAdminData() {
+  renderAdminSummary();
+  renderAdminCategories();
+  renderAdminQuizzes();
+  renderAdminPosts();
+  renderAdminChats();
+  selectAdminTab(currentAdminTab);
+}
+
+
+async function loadAdminData(force = false) {
+  if (!isCurrentUserAdmin()) return;
+
+  const cacheFresh =
+    adminDataLoadedAt > 0 &&
+    Date.now() - adminDataLoadedAt < ADMIN_DATA_CACHE_MS;
+
+  if (!force && cacheFresh) {
+    renderAdminData();
+    return;
+  }
+
+  if (adminDataLoading) return;
+
+  adminDataLoading = true;
+  const refreshButton = el("adminRefreshButton");
+  if (refreshButton) {
+    refreshButton.disabled = true;
+    refreshButton.textContent = "불러오는 중...";
+  }
+
+  try {
+    const response = await fetch(
+      "/api/admin?action=overview",
+      {
+        credentials: "same-origin",
+        cache: "no-store"
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.status === 401 || result.sessionExpired) {
+      currentUser = null;
+      showAuthPage();
+      return;
+    }
+
+    if (response.status === 403) {
+      alert("관리자 권한이 필요합니다.");
+      showHome();
+      return;
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "관리자 데이터를 불러오지 못했습니다.");
+    }
+
+    adminData = {
+      counts: result.counts || { categories: 0, quizzes: 0, posts: 0, chats: 0 },
+      categories: Array.isArray(result.categories) ? result.categories : [],
+      quizzes: Array.isArray(result.quizzes) ? result.quizzes : [],
+      posts: Array.isArray(result.posts) ? result.posts : [],
+      chatMessages: Array.isArray(result.chatMessages) ? result.chatMessages : []
+    };
+
+    // 관리자에서 카테고리를 추가/수정/삭제한 직후에도
+    // 퀴즈 작성/수정 셀렉트에 최신 카테고리가 바로 나타나도록 동기화한다.
+    homeCategories = [
+      { id: "all", name: "전체" },
+      ...adminData.categories.map(function(category) {
+        return {
+          id: String(category.id),
+          name: String(category.name || ""),
+          isFixed: Boolean(category.isFixed)
+        };
+      })
+    ];
+
+    adminDataLoadedAt = Date.now();
+    renderAdminData();
+
+  } catch (error) {
+    console.error("ADMIN_LOAD_ERROR:", error);
+    setAdminMessage("adminCategoryMessage", "관리자 데이터를 불러오지 못했습니다.", "error");
+  } finally {
+    adminDataLoading = false;
+    if (refreshButton) {
+      refreshButton.disabled = false;
+      refreshButton.textContent = "새로고침";
+    }
+  }
+}
+
+
+function showAdmin() {
+  if (!isCurrentUserAdmin()) {
+    alert("관리자만 접근할 수 있습니다.");
+    return;
+  }
+
+  currentPage = "admin";
+  hidePages();
+
+  el("adminContent").style.display = "block";
+  el("adminNav").classList.add("active");
+
+  renderAdminData();
+  loadAdminData(false);
+}
+
+
+async function adminPostJson(action, payload) {
+  const response = await fetch(
+    "/api/admin?action=" + encodeURIComponent(action),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      credentials: "same-origin",
+      body: JSON.stringify(payload || {})
+    }
+  );
+
+  const result = await response.json();
+
+  if (response.status === 401 || result.sessionExpired) {
+    currentUser = null;
+    showAuthPage();
+    throw new Error("로그인이 필요합니다.");
+  }
+
+  if (!response.ok || !result.success) {
+    throw new Error(result.message || "요청을 처리하지 못했습니다.");
+  }
+
+  return result;
+}
+
+
+async function createAdminCategory() {
+  if (!isCurrentUserAdmin()) return;
+
+  const input = el("adminNewCategoryName");
+  const name = String(input.value || "").trim();
+  const button = el("adminCategoryCreateButton");
+
+  setAdminMessage("adminCategoryMessage", "");
+
+  if (!name || name.length > 30) {
+    setAdminMessage("adminCategoryMessage", "카테고리 이름은 1~30자로 입력해주세요.", "error");
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await adminPostJson("category-create", { name });
+    input.value = "";
+    homeDataLoadedAt = 0;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage("adminCategoryMessage", "카테고리를 추가했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminCategoryMessage", error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+
+function openAdminCategoryEdit(categoryId) {
+  const category = (adminData.categories || [])
+    .find(item => String(item.id) === String(categoryId));
+
+  if (!category) return;
+
+  editingAdminCategoryId = category.id;
+  el("adminCategoryEditName").value = category.name;
+  setAdminMessage("adminCategoryEditMessage", "");
+  el("adminCategoryModal").classList.add("show");
+
+  setTimeout(function() {
+    el("adminCategoryEditName")?.focus();
+    el("adminCategoryEditName")?.select();
+  }, 0);
+}
+
+
+function closeAdminCategoryModal() {
+  editingAdminCategoryId = null;
+  el("adminCategoryModal")?.classList.remove("show");
+  setAdminMessage("adminCategoryEditMessage", "");
+}
+
+
+async function saveAdminCategoryEdit() {
+  if (!editingAdminCategoryId) return;
+
+  const name = String(el("adminCategoryEditName").value || "").trim();
+  const button = el("adminCategoryEditSaveButton");
+
+  if (!name || name.length > 30) {
+    setAdminMessage("adminCategoryEditMessage", "카테고리 이름은 1~30자로 입력해주세요.", "error");
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await adminPostJson(
+      "category-update",
+      {
+        categoryId: editingAdminCategoryId,
+        name
+      }
+    );
+
+    closeAdminCategoryModal();
+    homeDataLoadedAt = 0;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage("adminCategoryMessage", "카테고리를 수정했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminCategoryEditMessage", error.message, "error");
+  } finally {
+    button.disabled = false;
+  }
+}
+
+
+async function deleteAdminCategory(categoryId) {
+  const category = (adminData.categories || [])
+    .find(item => String(item.id) === String(categoryId));
+
+  if (!category) return;
+
+  const confirmed = confirm(
+    `카테고리 “${category.name}”을 삭제하시겠습니까?\n\n이 카테고리를 사용하는 기존 문제는 다른 활성 카테고리로 자동 이동됩니다.`
+  );
+
+  if (!confirmed) return;
+
+  try {
+    await adminPostJson("category-delete", { categoryId });
+    homeDataLoadedAt = 0;
+    myQuizzesLoadedAt = 0;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage("adminCategoryMessage", "카테고리를 삭제했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminCategoryMessage", error.message, "error");
+  }
+}
+
+
+async function deleteAdminQuiz(quizId) {
+  const quiz = (adminData.quizzes || [])
+    .find(item => String(item.id) === String(quizId));
+
+  if (!quiz) return;
+
+  if (!confirm(`문제 “${quiz.title}”을 삭제하시겠습니까?`)) return;
+
+  try {
+    await adminPostJson("quiz-delete", { quizId });
+    homeQuizzes = homeQuizzes.filter(item => String(item.id) !== String(quizId));
+    myQuizzes = myQuizzes.filter(item => String(item.id) !== String(quizId));
+    homeDataLoadedAt = 0;
+    myQuizzesLoadedAt = 0;
+    myPageStatsLoadedAt = 0;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage("adminQuizMessage", "문제를 삭제했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminQuizMessage", error.message, "error");
+  }
+}
+
+
+async function deleteAdminPost(postId) {
+  const post = (adminData.posts || [])
+    .find(item => String(item.id) === String(postId));
+
+  if (!post) return;
+
+  if (!confirm(`게시물 “${post.title}”을 삭제하시겠습니까?\n댓글과 좋아요 데이터도 함께 정리됩니다.`)) return;
+
+  try {
+    await adminPostJson("post-delete", { postId });
+    boardPosts = boardPosts.filter(item => String(item.id) !== String(postId));
+    boardPostsLoadedAt = 0;
+    boardPostsLoaded = false;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage("adminPostMessage", "게시물을 삭제했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminPostMessage", error.message, "error");
+  }
+}
+
+
+async function deleteAdminChat(messageId) {
+  const message = (adminData.chatMessages || [])
+    .find(item => String(item.id) === String(messageId));
+
+  if (!message) return;
+
+  if (!confirm(`${message.senderNickname}님의 채팅을 삭제하시겠습니까?`)) return;
+
+  try {
+    await adminPostJson("chat-delete", { messageId });
+    adminDataLoadedAt = 0;
+    communityMessageSyncAt = null;
+    communityMessagesLoaded = false;
+    await loadAdminData(true);
+    setAdminMessage("adminChatMessage", "채팅 메시지를 삭제했습니다.", "success");
+  } catch (error) {
+    setAdminMessage("adminChatMessage", error.message, "error");
+  }
+}
+
+
+async function clearAdminChats() {
+  const count = Number(adminData.counts?.chats || 0);
+
+  if (!count) {
+    setAdminMessage("adminChatMessage", "삭제할 일반 채팅이 없습니다.");
+    return;
+  }
+
+  if (!confirm(`전체 일반 채팅 ${formatNumber(count)}개를 삭제하시겠습니까?\n공지와 투표는 유지됩니다.`)) return;
+
+  const button = el("adminClearChatButton");
+  button.disabled = true;
+
+  try {
+    const result = await adminPostJson("chat-clear", {});
+    communityMessageSyncAt = null;
+    communityMessagesLoaded = false;
+    adminDataLoadedAt = 0;
+    await loadAdminData(true);
+    setAdminMessage(
+      "adminChatMessage",
+      `${formatNumber(result.deletedCount || 0)}개의 일반 채팅을 삭제했습니다.`,
+      "success"
+    );
+  } catch (error) {
+    setAdminMessage("adminChatMessage", error.message, "error");
+  } finally {
+    button.disabled = false;
   }
 }
 
@@ -16255,6 +18939,9 @@ async function openCreateQuizModal() {
   editingQuizId =
     null;
 
+  editingQuizAdminMode =
+    false;
+
 
   createChoiceCount =
     4;
@@ -16338,7 +19025,8 @@ async function openCreateQuizModal() {
 ========================================================= */
 
 async function openEditQuizModal(
-  quizId
+  quizId,
+  adminMode = false
 ) {
 
   await ensureCategories();
@@ -16349,13 +19037,15 @@ async function openEditQuizModal(
 
   try {
 
+    const editLoadUrl =
+      adminMode
+        ? "/api/admin?action=quiz-detail&quizId=" + encodeURIComponent(quizId)
+        : "/api/quiz?action=get-my-quiz&quizId=" + encodeURIComponent(quizId);
+
     const response =
       await fetch(
 
-        "/api/quiz?action=get-my-quiz&quizId=" +
-        encodeURIComponent(
-          quizId
-        ),
+        editLoadUrl,
 
         {
 
@@ -16395,6 +19085,9 @@ async function openEditQuizModal(
     editingQuizId =
       quiz.id;
 
+    editingQuizAdminMode =
+      Boolean(adminMode);
+
 
     el("quizFormTitle")
       .textContent =
@@ -16403,7 +19096,9 @@ async function openEditQuizModal(
 
     el("quizFormDescription")
       .textContent =
-      "수정하면 문제 버전이 증가합니다. 상세 문제는 선택사항입니다.";
+      adminMode
+        ? "관리자 권한으로 문제를 수정합니다. 저장하면 문제 버전이 증가합니다."
+        : "수정하면 문제 버전이 증가합니다. 상세 문제는 선택사항입니다.";
 
 
     el("createQuizTitle")
@@ -16571,6 +19266,9 @@ function closeQuizFormModal() {
 
   editingQuizId =
     null;
+
+  editingQuizAdminMode =
+    false;
 
 
   el("quizFormModal")
@@ -17485,12 +20183,21 @@ async function submitQuizForm() {
   ) {
 
     url =
-      "/api/quiz?action=update-quiz";
+      editingQuizAdminMode
+        ? "/api/admin?action=quiz-update"
+        : "/api/quiz?action=update-quiz";
 
 
     payload.quizId =
       editingQuizId;
   }
+
+
+  const savingAsAdmin =
+    Boolean(
+      editingQuizId &&
+      editingQuizAdminMode
+    );
 
 
   const button =
@@ -17578,7 +20285,12 @@ async function submitQuizForm() {
         closeQuizFormModal();
 
 
-        await loadHomeData();
+        if (savingAsAdmin) {
+          adminDataLoadedAt = 0;
+          await loadAdminData(true);
+        } else {
+          await loadHomeData();
+        }
 
 
         if (
@@ -18811,6 +21523,17 @@ el("communityMessageInput")
   );
 
 
+el("adminCategoryModal")
+  .addEventListener(
+    "click",
+    function(event) {
+      if (event.target === this) {
+        closeAdminCategoryModal();
+      }
+    }
+  );
+
+
 el("rankingModal")
   .addEventListener(
     "click",
@@ -18919,6 +21642,8 @@ document
 
         closeRanking();
 
+        closeAdminCategoryModal();
+
         closeQuizFormModal();
 
         closeBoardPostCreate();
@@ -18957,6 +21682,129 @@ document.addEventListener(
   }
 );
 
+
+
+/* =========================================================
+   모바일 상단 메뉴
+========================================================= */
+
+function isMobileNavigation() {
+  return window.matchMedia("(max-width: 720px)").matches;
+}
+
+function setMobileMenuState(open) {
+  const nav = el("mainNavigation");
+  const button = el("mobileMenuButton");
+
+  if (!nav || !button) {
+    return;
+  }
+
+  const shouldOpen = Boolean(open) && isMobileNavigation();
+
+  nav.classList.toggle(
+    "mobile-open",
+    shouldOpen
+  );
+
+  button.classList.toggle(
+    "open",
+    shouldOpen
+  );
+
+  button.setAttribute(
+    "aria-expanded",
+    shouldOpen ? "true" : "false"
+  );
+
+  const icon = button.querySelector(
+    ".mobile-menu-icon"
+  );
+
+  if (icon) {
+    icon.textContent = shouldOpen ? "×" : "☰";
+  }
+
+  button.setAttribute(
+    "aria-label",
+    shouldOpen ? "메뉴 닫기" : "메뉴 열기"
+  );
+}
+
+function toggleMobileMenu() {
+  const nav = el("mainNavigation");
+
+  if (!nav) {
+    return;
+  }
+
+  setMobileMenuState(
+    !nav.classList.contains(
+      "mobile-open"
+    )
+  );
+}
+
+function closeMobileMenu() {
+  setMobileMenuState(false);
+}
+
+const mainNavigation = el("mainNavigation");
+
+if (mainNavigation) {
+  mainNavigation.addEventListener(
+    "click",
+    function(event) {
+      if (
+        event.target.closest(
+          ".nav-button"
+        )
+      ) {
+        closeMobileMenu();
+      }
+    }
+  );
+}
+
+document.addEventListener(
+  "click",
+  function(event) {
+    if (!isMobileNavigation()) {
+      return;
+    }
+
+    const nav = el("mainNavigation");
+    const button = el("mobileMenuButton");
+
+    if (
+      !nav ||
+      !button ||
+      !nav.classList.contains(
+        "mobile-open"
+      )
+    ) {
+      return;
+    }
+
+    if (
+      nav.contains(event.target) ||
+      button.contains(event.target)
+    ) {
+      return;
+    }
+
+    closeMobileMenu();
+  }
+);
+
+window.addEventListener(
+  "resize",
+  function() {
+    if (!isMobileNavigation()) {
+      closeMobileMenu();
+    }
+  }
+);
 
 /* =========================================================
    시작
