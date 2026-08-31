@@ -672,9 +672,12 @@ function serializeCommunityFeedItem(
   characterMap = new Map()
 ) {
 
+  // 항상 users 컬렉션의 최신 캐릭터를 우선 사용한다.
+  // 그래야 사용자가 코스튬을 바꾼 뒤 과거 채팅/공지/투표에서도
+  // 다른 사람에게 새 코스튬이 보인다.
   const senderCharacter =
-    item.senderCharacter ||
     characterMap.get(String(item.senderId || "")) ||
+    item.senderCharacter ||
     normalizeCharacterState(null);
 
 

@@ -5183,6 +5183,340 @@ canvas {
   }
 }
 
+
+/* =========================================================
+   코스튬 상점
+========================================================= */
+.costume-shop-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.costume-preview-card,
+.costume-items-card {
+  border: 1px solid #e1e7ef;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.costume-preview-card {
+  padding: 24px;
+  position: sticky;
+  top: 92px;
+}
+
+.costume-preview-label {
+  margin-bottom: 6px;
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.costume-preview-name {
+  margin: 0 0 16px;
+  color: #0f172a;
+  font-size: 23px;
+  font-weight: 900;
+}
+
+.costume-preview-stage-wrap {
+  min-height: 260px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: #f8fbff;
+  border: 1px solid #e7eef8;
+}
+
+.costume-preview-character {
+  width: min(100%, 260px);
+}
+
+.costume-balance {
+  margin-top: 18px;
+  padding: 15px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  background: #f1f6ff;
+}
+
+.costume-balance-label {
+  color: #475569;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.costume-balance-value {
+  color: #2468ee;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.costume-test-notice {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border-radius: 12px;
+  background: #fff7d6;
+  color: #8a5a00;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.costume-reset-button {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 14px;
+  border: 1px solid #d9e2ef;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.costume-reset-button:hover {
+  background: #f8fafc;
+}
+
+.costume-items-card {
+  padding: 22px;
+}
+
+.costume-shop-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.costume-shop-toolbar h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.costume-category-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding-bottom: 4px;
+}
+
+.costume-category-button {
+  min-height: 38px;
+  padding: 0 14px;
+  flex: 0 0 auto;
+  border: 1px solid #d8e2ef;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #475569;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.costume-category-button.active {
+  border-color: #2468ee;
+  background: #2468ee;
+  color: #ffffff;
+}
+
+.costume-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.costume-item {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #e1e7ef;
+  border-radius: 16px;
+  background: #ffffff;
+}
+
+.costume-item.equipped {
+  border: 2px solid #2468ee;
+  background: #f7faff;
+}
+
+.costume-item-preview {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #f8fbff;
+}
+
+.costume-item-character {
+  width: 92%;
+}
+
+.costume-item-category {
+  margin-top: 12px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.costume-item-name {
+  margin-top: 5px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.costume-item-description {
+  min-height: 38px;
+  margin-top: 7px;
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.costume-item-price {
+  margin-top: 10px;
+  color: #2468ee;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.costume-item-action {
+  width: 100%;
+  min-height: 42px;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 11px;
+  background: #2468ee;
+  color: #ffffff;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.costume-item-action.secondary {
+  border: 1px solid #cfd9e8;
+  background: #ffffff;
+  color: #475569;
+}
+
+.costume-item-action:disabled {
+  cursor: default;
+  opacity: 0.65;
+}
+
+.costume-shop-message {
+  min-height: 22px;
+  margin-top: 14px;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.costume-shop-message.success {
+  color: #0d9b4d;
+}
+
+.costume-shop-message.error {
+  color: #e54848;
+}
+
+.costume-empty {
+  padding: 40px 16px;
+  text-align: center;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .costume-shop-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .costume-preview-card {
+    position: static;
+  }
+
+  .costume-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  #costumeShopContent,
+  .costume-shop-layout,
+  .costume-preview-card,
+  .costume-items-card {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .costume-preview-card,
+  .costume-items-card {
+    padding: 16px;
+  }
+
+  .costume-preview-stage-wrap {
+    min-height: 220px;
+  }
+
+  .costume-preview-character {
+    width: min(78vw, 235px);
+  }
+
+  .costume-shop-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .costume-category-tabs {
+    width: 100%;
+  }
+}
+
+@media (max-width: 460px) {
+  .costume-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .costume-item {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    column-gap: 13px;
+    align-items: start;
+  }
+
+  .costume-item-preview {
+    grid-row: 1 / span 6;
+  }
+
+  .costume-item-category,
+  .costume-item-name,
+  .costume-item-description,
+  .costume-item-price,
+  .costume-item-action {
+    grid-column: 2;
+  }
+
+  .costume-item-category {
+    margin-top: 2px;
+  }
+
+  .costume-item-action {
+    min-height: 40px;
+  }
+}
+
 </style>
 </head>
 
@@ -5499,9 +5833,10 @@ canvas {
 
 
   <button
+    id="costumeShopNav"
     class="nav-button"
     type="button"
-    onclick="notReady('코스튬 상점')"
+    onclick="showCostumeShop()"
   >
     코스튬 상점
   </button>
@@ -5780,6 +6115,66 @@ canvas {
 
 
 
+
+
+
+<!-- =======================================================
+     코스튬 상점
+======================================================= -->
+
+<div
+  id="costumeShopContent"
+  style="display:none;"
+>
+
+  <div class="page-header">
+    <div>
+      <h2>코스튬 상점</h2>
+      <p>보유한 점수로 코스튬을 구매하고 캐릭터에 장착하는 공간입니다.</p>
+    </div>
+  </div>
+
+  <div class="costume-shop-layout">
+
+    <section class="costume-preview-card">
+      <div class="costume-preview-label">내 캐릭터</div>
+      <h3 class="costume-preview-name" id="costumePreviewNickname">사용자</h3>
+
+      <div class="costume-preview-stage-wrap">
+        <div id="costumePreviewStage"></div>
+      </div>
+
+      <div class="costume-balance">
+        <span class="costume-balance-label">보유 점수</span>
+        <span class="costume-balance-value" id="costumePoint">0</span>
+      </div>
+
+      <div id="costumeTestNotice" class="costume-test-notice">
+        테스트 기간에는 점수를 사용하지 않고 원하는 코스튬을 바로 장착할 수 있습니다.
+      </div>
+
+      <button
+        class="costume-reset-button"
+        type="button"
+        onclick="resetAllCostumes()"
+      >
+        장착 코스튬 모두 해제
+      </button>
+
+      <div id="costumeShopMessage" class="costume-shop-message"></div>
+    </section>
+
+    <section class="costume-items-card">
+      <div class="costume-shop-toolbar">
+        <h3>코스튬 목록</h3>
+        <div id="costumeCategoryTabs" class="costume-category-tabs"></div>
+      </div>
+
+      <div id="costumeGrid" class="costume-grid"></div>
+    </section>
+
+  </div>
+</div>
 
 <!-- =======================================================
      마이페이지
@@ -7823,6 +8218,11 @@ let rankingLoading = false;
 
 const RANKING_CACHE_MS = 15000;
 
+let costumeShopData = null;
+let costumeShopLoading = false;
+let costumeShopSubmitting = false;
+let selectedCostumeCategory = "전체";
+
 // 13단계: 게시판 메인 화면 + 게시물 작성 + 기존 퀴즈 첨부 상태.
 let boardPosts = [];
 
@@ -8708,6 +9108,11 @@ async function logout() {
     rankingLoadedAt = 0;
     rankingLoading = false;
 
+    costumeShopData = null;
+    costumeShopLoading = false;
+    costumeShopSubmitting = false;
+    selectedCostumeCategory = "전체";
+
     adminData = {
       counts: { categories: 0, quizzes: 0, posts: 0, chats: 0 },
       categories: [],
@@ -8841,6 +9246,7 @@ function hidePages() {
 
   [
     "homeContent",
+    "costumeShopContent",
     "myPageContent",
     "myQuizContent",
     "communityChoiceContent",
@@ -8867,6 +9273,7 @@ function hidePages() {
 
   [
     "homeNav",
+    "costumeShopNav",
     "myPageNav",
     "myQuizNav",
     "communityNav",
@@ -9136,6 +9543,377 @@ function renderUserCharacter() {
         );
       }
     );
+}
+
+
+
+/* =========================================================
+   코스튬 상점
+========================================================= */
+function setCostumeShopMessage(message, type = "") {
+  const target = el("costumeShopMessage");
+  if (!target) return;
+
+  target.textContent = message || "";
+  target.classList.remove("success", "error");
+  if (type === "success" || type === "error") {
+    target.classList.add(type);
+  }
+}
+
+function getCostumePreviewCharacter(item = null) {
+  const state = {
+    ...getCharacterState(
+      costumeShopData?.character ||
+      currentUser?.character
+    )
+  };
+
+  if (item?.layer && item?.asset) {
+    state[item.layer] = item.asset;
+  }
+
+  return state;
+}
+
+function isCostumeEquipped(item) {
+  if (!item?.layer || !item?.asset) return false;
+  const state = getCharacterState(
+    costumeShopData?.character || currentUser?.character
+  );
+  return state[item.layer] === item.asset;
+}
+
+function syncCurrentCharacterInLocalData(character) {
+  if (!currentUser) return;
+  const userId = String(currentUser.id || "");
+  currentUser.character = character;
+
+  homeQuizzes.forEach(function(quiz) {
+    if (String(quiz.writerId || "") === userId) {
+      quiz.writerCharacter = character;
+    }
+  });
+
+  myQuizzes.forEach(function(quiz) {
+    if (String(quiz.writerId || "") === userId) {
+      quiz.writerCharacter = character;
+    }
+  });
+
+  boardPosts.forEach(function(post) {
+    if (String(post.authorId || "") === userId) {
+      post.authorCharacter = character;
+    }
+  });
+
+  if (
+    currentBoardPostDetail &&
+    String(currentBoardPostDetail.authorId || "") === userId
+  ) {
+    currentBoardPostDetail.authorCharacter = character;
+  }
+
+  currentBoardComments.forEach(function(comment) {
+    if (String(comment.authorId || "") === userId) {
+      comment.authorCharacter = character;
+    }
+  });
+
+  communityMessageItems.forEach(function(item) {
+    if (String(item.senderId || "") === userId) {
+      item.character = character;
+      item.authorCharacter = character;
+    }
+  });
+
+  currentCommunityNotices.forEach(function(item) {
+    if (String(item.authorId || "") === userId) {
+      item.authorCharacter = character;
+    }
+  });
+
+  currentCommunityPolls.forEach(function(item) {
+    if (
+      String(item.creatorId || item.authorId || "") === userId
+    ) {
+      item.authorCharacter = character;
+    }
+  });
+
+  if (rankingCache?.rankings) {
+    rankingCache.rankings.forEach(function(user) {
+      if (String(user.id || "") === userId) {
+        user.character = character;
+      }
+    });
+  }
+
+  if (
+    rankingCache?.me &&
+    String(rankingCache.me.id || "") === userId
+  ) {
+    rankingCache.me.character = character;
+  }
+
+  renderUserCharacter();
+  updateProfile();
+}
+
+function renderCostumeShop() {
+  if (!currentUser) return;
+
+  const shop = costumeShopData;
+  const stage = el("costumePreviewStage");
+  const grid = el("costumeGrid");
+  const tabs = el("costumeCategoryTabs");
+
+  el("costumePreviewNickname").textContent =
+    currentUser.nickname || "사용자";
+
+  el("costumePoint").textContent = formatNumber(
+    shop?.point ?? currentUser.point ?? 0
+  );
+
+  if (stage) {
+    stage.innerHTML = getCharacterStageHtml(
+      shop?.character || currentUser.character,
+      "costume-preview-character"
+    );
+  }
+
+  if (!shop) {
+    if (grid) {
+      grid.innerHTML = '<div class="costume-empty">코스튬을 불러오는 중입니다.</div>';
+    }
+    return;
+  }
+
+  const testNotice = el("costumeTestNotice");
+  if (testNotice) {
+    testNotice.style.display = shop.testMode ? "block" : "none";
+  }
+
+  const categories = [
+    "전체",
+    ...new Set((shop.items || []).map(item => item.category || "기타"))
+  ];
+
+  if (!categories.includes(selectedCostumeCategory)) {
+    selectedCostumeCategory = "전체";
+  }
+
+  if (tabs) {
+    tabs.innerHTML = categories.map(category => `
+      <button
+        class="costume-category-button ${category === selectedCostumeCategory ? "active" : ""}"
+        type="button"
+        onclick="selectCostumeCategory('${escapeHtml(category)}')"
+      >
+        ${escapeHtml(category)}
+      </button>
+    `).join("");
+  }
+
+  const visibleItems = (shop.items || []).filter(item =>
+    selectedCostumeCategory === "전체" ||
+    item.category === selectedCostumeCategory
+  );
+
+  if (!grid) return;
+
+  if (!visibleItems.length) {
+    grid.innerHTML = '<div class="costume-empty">이 카테고리에 등록된 코스튬이 없습니다.</div>';
+    return;
+  }
+
+  grid.innerHTML = visibleItems.map(item => {
+    const equipped = isCostumeEquipped(item);
+    const previewCharacter = getCostumePreviewCharacter(item);
+
+    let priceText = "테스트 무료 장착";
+    if (!shop.testMode) {
+      priceText = item.price == null
+        ? "가격 미정"
+        : `${formatNumber(item.price)} ${escapeHtml(shop.currencyName || "점수")}`;
+    }
+
+    let buttonText = equipped ? "장착 해제" : "장착하기";
+    let buttonClass = equipped ? "costume-item-action secondary" : "costume-item-action";
+    let buttonAction = equipped
+      ? `unequipCostume('${escapeHtml(item.layer)}')`
+      : `equipCostume('${escapeHtml(item.id)}')`;
+
+    if (!shop.testMode && !item.owned) {
+      buttonText = item.price == null ? "가격 설정 대기" : "구매하기";
+      buttonClass = "costume-item-action";
+      buttonAction = item.price == null
+        ? ""
+        : `purchaseCostume('${escapeHtml(item.id)}')`;
+    }
+
+    return `
+      <article class="costume-item ${equipped ? "equipped" : ""}">
+        <div class="costume-item-preview">
+          ${getCharacterStageHtml(previewCharacter, "costume-item-character")}
+        </div>
+        <div class="costume-item-category">${escapeHtml(item.category || "기타")}</div>
+        <div class="costume-item-name">${escapeHtml(item.name || "코스튬")}</div>
+        <div class="costume-item-description">${escapeHtml(item.description || "")}</div>
+        <div class="costume-item-price">${escapeHtml(priceText)}</div>
+        <button
+          class="${buttonClass}"
+          type="button"
+          ${buttonAction ? `onclick="${buttonAction}"` : "disabled"}
+          ${costumeShopSubmitting ? "disabled" : ""}
+        >
+          ${escapeHtml(buttonText)}
+        </button>
+      </article>
+    `;
+  }).join("");
+}
+
+function selectCostumeCategory(category) {
+  selectedCostumeCategory = String(category || "전체");
+  renderCostumeShop();
+}
+
+async function loadCostumeShop(force = false) {
+  if (costumeShopLoading || !currentUser) return;
+  if (costumeShopData && !force) {
+    renderCostumeShop();
+    return;
+  }
+
+  costumeShopLoading = true;
+  setCostumeShopMessage("");
+
+  try {
+    const response = await fetch(
+      "/api/costume?action=shop",
+      { credentials: "same-origin", cache: "no-store" }
+    );
+    const result = await response.json();
+
+    if (response.status === 401 || result.sessionExpired) {
+      currentUser = null;
+      showAuthPage();
+      return;
+    }
+
+    if (!response.ok || !result.success || !result.shop) {
+      throw new Error(result.message || "코스튬 상점을 불러오지 못했습니다.");
+    }
+
+    costumeShopData = result.shop;
+    currentUser.point = Number(result.shop.point || 0);
+    syncCurrentCharacterInLocalData(result.shop.character);
+    renderCostumeShop();
+  } catch (error) {
+    console.error("COSTUME_SHOP_LOAD_ERROR:", error);
+    setCostumeShopMessage(
+      error.message || "코스튬 상점을 불러오지 못했습니다.",
+      "error"
+    );
+  } finally {
+    costumeShopLoading = false;
+  }
+}
+
+function showCostumeShop() {
+  if (!currentUser) {
+    showAuthPage();
+    return;
+  }
+
+  currentPage = "costumeShop";
+  hidePages();
+  el("costumeShopContent").style.display = "block";
+  el("costumeShopNav").classList.add("active");
+  renderCostumeShop();
+  loadCostumeShop(false);
+}
+
+async function costumePost(action, body) {
+  if (costumeShopSubmitting) return null;
+  costumeShopSubmitting = true;
+  renderCostumeShop();
+
+  try {
+    const response = await fetch(
+      `/api/costume?action=${encodeURIComponent(action)}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json; charset=utf-8" },
+        credentials: "same-origin",
+        body: JSON.stringify(body || {})
+      }
+    );
+
+    const result = await response.json();
+
+    if (response.status === 401 || result.sessionExpired) {
+      currentUser = null;
+      showAuthPage();
+      return null;
+    }
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.message || "코스튬 요청을 처리하지 못했습니다.");
+    }
+
+    if (result.character) {
+      if (costumeShopData) costumeShopData.character = result.character;
+      syncCurrentCharacterInLocalData(result.character);
+    }
+
+    if (result.point != null) {
+      currentUser.point = Number(result.point || 0);
+      if (costumeShopData) costumeShopData.point = currentUser.point;
+      updateProfile();
+    }
+
+    if (result.ownedCostumes && costumeShopData) {
+      costumeShopData.ownedCostumes = result.ownedCostumes;
+      const owned = new Set(result.ownedCostumes.map(String));
+      costumeShopData.items = (costumeShopData.items || []).map(item => ({
+        ...item,
+        owned: costumeShopData.testMode || owned.has(item.id)
+      }));
+    }
+
+    setCostumeShopMessage(result.message || "완료되었습니다.", "success");
+    renderCostumeShop();
+    return result;
+  } catch (error) {
+    console.error("COSTUME_ACTION_ERROR:", error);
+    setCostumeShopMessage(error.message || "요청을 처리하지 못했습니다.", "error");
+    return null;
+  } finally {
+    costumeShopSubmitting = false;
+    renderCostumeShop();
+  }
+}
+
+async function equipCostume(itemId) {
+  await costumePost("equip", { itemId });
+}
+
+async function unequipCostume(layer) {
+  await costumePost("unequip", { layer });
+}
+
+async function purchaseCostume(itemId) {
+  const result = await costumePost("purchase", { itemId });
+  if (result) {
+    await loadCostumeShop(true);
+  }
+}
+
+async function resetAllCostumes() {
+  if (!confirm("현재 장착한 코스튬을 모두 해제하시겠습니까?")) return;
+  await costumePost("reset-equipped", {});
 }
 
 

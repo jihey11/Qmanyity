@@ -401,6 +401,9 @@ async function signup(
         character:
           normalizeCharacterState(null),
 
+        costumeInventory:
+          [],
+
         role:
           "USER",
 
