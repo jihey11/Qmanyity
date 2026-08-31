@@ -609,9 +609,11 @@ button:disabled {
 
 .character-stage {
   position: relative;
+  display: block;
   width: 100%;
   height: 100%;
   min-width: 0;
+  min-height: 0;
   flex-shrink: 0;
 }
 
@@ -5232,8 +5234,18 @@ canvas {
   border: 1px solid #e7eef8;
 }
 
-.costume-preview-character {
+#costumePreviewStage {
   width: min(100%, 260px);
+  aspect-ratio: 692 / 638;
+  flex: 0 0 auto;
+  position: relative;
+}
+
+.costume-preview-character {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: auto;
+  flex: 0 0 auto;
 }
 
 .costume-balance {
@@ -5360,6 +5372,9 @@ canvas {
 
 .costume-item-character {
   width: 92%;
+  height: auto;
+  aspect-ratio: 692 / 638;
+  flex: 0 0 auto;
 }
 
 .costume-item-category {
@@ -5470,8 +5485,13 @@ canvas {
     min-height: 220px;
   }
 
-  .costume-preview-character {
+  #costumePreviewStage {
     width: min(78vw, 235px);
+  }
+
+  .costume-preview-character {
+    width: 100%;
+    height: 100%;
   }
 
   .costume-shop-toolbar {
@@ -9466,8 +9486,10 @@ function renderCharacterStage(
     return;
   }
 
+  const normalizedState =
+    getCharacterState(state);
 
-  [
+  const layerNames = [
     "back",
     "base",
     "body",
@@ -9475,54 +9497,44 @@ function renderCharacterStage(
     "face",
     "head",
     "front"
-  ]
-  .forEach(
-    function(layerName) {
+  ];
 
-      const image =
-        stage.querySelector(
-          `[data-character-layer="${layerName}"]`
-        );
+  layerNames.forEach(function(layerName) {
+    const source = normalizedState[layerName];
 
+    let image = stage.querySelector(
+      `[data-character-layer="${layerName}"]`
+    );
 
-      if (!image) {
-        return;
-      }
-
-
-      const source =
-        state[layerName];
-
-
-      if (!source) {
-        image.hidden =
-          true;
-
-        image.removeAttribute(
-          "src"
-        );
-
-        return;
-      }
-
-
-      if (
-        image.getAttribute(
-          "src"
-        ) !== source
-      ) {
-        image.setAttribute(
-          "src",
-          source
-        );
-      }
-
-
-      image.hidden =
-        false;
+    // 처음에는 장착하지 않았던 레이어도 나중에 코스튬을
+    // 장착하면 즉시 표시할 수 있도록 img 요소를 동적으로 만든다.
+    if (source && !image) {
+      image = document.createElement("img");
+      image.className = "character-layer";
+      image.dataset.characterLayer = layerName;
+      image.alt = "";
+      image.setAttribute("aria-hidden", "true");
+      stage.appendChild(image);
     }
-  );
+
+    if (!image) {
+      return;
+    }
+
+    if (!source) {
+      image.hidden = true;
+      image.removeAttribute("src");
+      return;
+    }
+
+    if (image.getAttribute("src") !== source) {
+      image.setAttribute("src", source);
+    }
+
+    image.hidden = false;
+  });
 }
+
 
 
 function renderUserCharacter() {
@@ -9676,9 +9688,23 @@ function renderCostumeShop() {
   );
 
   if (stage) {
-    stage.innerHTML = getCharacterStageHtml(
-      shop?.character || currentUser.character,
-      "costume-preview-character"
+    let previewStage = stage.querySelector(
+      ".costume-preview-character"
+    );
+
+    if (!previewStage) {
+      stage.innerHTML = getCharacterStageHtml(
+        shop?.character || currentUser.character,
+        "costume-preview-character"
+      );
+      previewStage = stage.querySelector(
+        ".costume-preview-character"
+      );
+    }
+
+    renderCharacterStage(
+      previewStage,
+      shop?.character || currentUser.character
     );
   }
 
