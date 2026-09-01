@@ -142,40 +142,65 @@ async function normalizeActiveCategoryDisplayOrder(db) {
   const categories = await db.collection("categories")
     .find({ active: true })
     .sort({ displayOrder: 1, name: 1 })
-    .project({ name: 1, displayOrder: 1 })
+    .project({ name: 1, isFixed: 1, displayOrder: 1, active: 1 })
     .toArray();
 
   const ordered = sortCategoriesWithEtcLast(categories);
 
-  const operations = ordered
-    .map((category, index) => {
-      const displayOrder = index + 1;
-
-      if (Number(category.displayOrder || 0) === displayOrder) {
-        return null;
-      }
-
-      return {
-        updateOne: {
-          filter: { _id: category._id },
-          update: {
-            $set: {
-              displayOrder,
-              updatedAt: new Date()
-            }
-          }
-        }
-      };
-    })
-    .filter(Boolean);
-
-  if (operations.length) {
-    await db.collection("categories").bulkWrite(operations);
+  if (!ordered.length) {
+    return [];
   }
+
+  const alreadyNormalized = ordered.every(
+    (category, index) => Number(category.displayOrder || 0) === index + 1
+  );
+
+  if (alreadyNormalized) {
+    return ordered.map((category, index) => ({
+      ...category,
+      displayOrder: index + 1
+    }));
+  }
+
+  const now = new Date();
+
+  // 예전에 999999, 1000000 같은 큰 순서값을 사용했거나
+  // 혹시 displayOrder에 unique 인덱스가 남아 있어도 충돌하지 않도록
+  // 먼저 임시로 아주 큰 서로 다른 값으로 이동한 뒤 1,2,3...으로 정리한다.
+  const tempBase = Date.now() * 1000;
+
+  const tempOperations = ordered.map((category, index) => ({
+    updateOne: {
+      filter: { _id: category._id },
+      update: {
+        $set: {
+          displayOrder: tempBase + index + 1,
+          updatedAt: now
+        }
+      }
+    }
+  }));
+
+  await db.collection("categories").bulkWrite(tempOperations, { ordered: true });
+
+  const finalOperations = ordered.map((category, index) => ({
+    updateOne: {
+      filter: { _id: category._id },
+      update: {
+        $set: {
+          displayOrder: index + 1,
+          updatedAt: now
+        }
+      }
+    }
+  }));
+
+  await db.collection("categories").bulkWrite(finalOperations, { ordered: true });
 
   return ordered.map((category, index) => ({
     ...category,
-    displayOrder: index + 1
+    displayOrder: index + 1,
+    updatedAt: now
   }));
 }
 
@@ -231,6 +256,9 @@ async function overview(request) {
   const { db } = auth;
 
   try {
+    // 관리자 화면을 열 때 과거의 비정상 displayOrder도 자동 복구한다.
+    await normalizeActiveCategoryDisplayOrder(db);
+
     const [
       categories,
       quizzes,
@@ -385,26 +413,49 @@ async function categoryCreate(request) {
       );
     }
 
-    const lastCategory = await auth.db.collection("categories")
-      .find({ active: true })
-      .sort({ displayOrder: -1 })
-      .limit(1)
-      .project({ displayOrder: 1 })
-      .toArray();
+    // 먼저 기존 순서값을 1,2,3...으로 정리한다.
+    const currentCategories =
+      await normalizeActiveCategoryDisplayOrder(auth.db);
+
+    const etcCategory = currentCategories.find(isEtcCategory) || null;
+    const normalCount = currentCategories.filter(
+      category => !isEtcCategory(category)
+    ).length;
 
     const now = new Date();
     const id = `custom-${Date.now()}-${randomBytes(3).toString("hex")}`;
+
+    // 새 카테고리는 항상 기타 바로 앞에 들어간다.
+    // 기타가 있다면 먼저 한 칸 뒤로 이동시켜 순서 중복도 방지한다.
+    if (etcCategory) {
+      await auth.db.collection("categories").updateOne(
+        { _id: etcCategory._id, active: true },
+        {
+          $set: {
+            displayOrder: normalCount + 2,
+            updatedAt: now
+          }
+        }
+      );
+    }
+
     const document = {
       _id: id,
       name,
       active: true,
       isFixed: false,
-      displayOrder: Number(lastCategory[0]?.displayOrder || 0) + 1,
+      displayOrder: normalCount + 1,
       createdAt: now,
       updatedAt: now
     };
 
-    await auth.db.collection("categories").insertOne(document);
+    try {
+      await auth.db.collection("categories").insertOne(document);
+    } catch (insertError) {
+      // 삽입 실패 시에도 기존 카테고리 순서를 정상 상태로 복원한다.
+      await normalizeActiveCategoryDisplayOrder(auth.db).catch(() => {});
+      throw insertError;
+    }
 
     const normalizedCategories =
       await normalizeActiveCategoryDisplayOrder(auth.db);
@@ -494,6 +545,8 @@ async function categoryUpdate(request) {
     category.name = name;
     category.updatedAt = now;
 
+    await normalizeActiveCategoryDisplayOrder(auth.db);
+
     return jsonResponse({
       success: true,
       category: serializeAdminCategory(category)
@@ -572,6 +625,8 @@ async function categoryDelete(request) {
         }
       )
     ]);
+
+    await normalizeActiveCategoryDisplayOrder(auth.db);
 
     return jsonResponse({
       success: true,
