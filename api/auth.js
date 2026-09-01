@@ -24,6 +24,10 @@ import {
   guardApiRequest
 } from "../lib/api.js";
 
+import {
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 const scrypt =
   promisify(
@@ -91,8 +95,9 @@ function getPublicUser(
       ),
 
     character:
-      user.character ||
-      "default",
+      normalizeCharacterState(
+        user.character
+      ),
 
     role:
       user.role ||
@@ -394,7 +399,10 @@ async function signup(
           0,
 
         character:
-          "default",
+          normalizeCharacterState(null),
+
+        costumeInventory:
+          [],
 
         role:
           "USER",

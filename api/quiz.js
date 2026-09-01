@@ -16,6 +16,10 @@ import {
   isAllowedEnum
 } from "../lib/api.js";
 
+import {
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 // =========================================================
 // 기본 설정
@@ -253,7 +257,7 @@ function getHomePublicUser(
     nickname: user.nickname || "사용자",
     point: Number(user.point || 0),
     totalScore: Number(user.totalScore || 0),
-    character: user.character || "default",
+    character: normalizeCharacterState(user.character),
     role: user.role || "USER"
   };
 }
@@ -1227,7 +1231,8 @@ async function home(
               pipeline: [
                 {
                   $project: {
-                    nickname: 1
+                    nickname: 1,
+                    character: 1
                   }
                 },
                 {
@@ -1546,6 +1551,15 @@ async function home(
               quiz.writerInfo?.[0]
                 ?.nickname ||
               "알 수 없음",
+
+            writerId:
+              quiz.writerId?.toString() ||
+              "",
+
+            writerCharacter:
+              normalizeCharacterState(
+                quiz.writerInfo?.[0]?.character
+              ),
 
             like:
               Number(

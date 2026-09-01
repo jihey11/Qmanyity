@@ -14,6 +14,10 @@ import {
   guardApiRequest
 } from "../lib/api.js";
 
+import {
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 // =========================================================
 // JSON 응답
@@ -581,8 +585,9 @@ async function ranking(
                 ),
 
               character:
-                user.character ||
-                "default",
+                normalizeCharacterState(
+                  user.character
+                ),
 
               role:
                 user.role ||
@@ -616,8 +621,9 @@ async function ranking(
           myScore,
 
         character:
-          me.character ||
-          "default",
+          normalizeCharacterState(
+            me.character
+          ),
 
         role:
           me.role ||

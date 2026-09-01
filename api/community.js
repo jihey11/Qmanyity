@@ -15,6 +15,11 @@ import {
   guardApiRequest
 } from "../lib/api.js";
 
+import {
+  loadUserCharacterMap,
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 
 
@@ -663,8 +668,18 @@ async function ensureExistingGlobalItemsInFeed(
 function serializeCommunityFeedItem(
   item,
   user,
-  myVoteMap = new Map()
+  myVoteMap = new Map(),
+  characterMap = new Map()
 ) {
+
+  // 항상 users 컬렉션의 최신 캐릭터를 우선 사용한다.
+  // 그래야 사용자가 코스튬을 바꾼 뒤 과거 채팅/공지/투표에서도
+  // 다른 사람에게 새 코스튬이 보인다.
+  const senderCharacter =
+    characterMap.get(String(item.senderId || "")) ||
+    item.senderCharacter ||
+    normalizeCharacterState(null);
+
 
   if (
     item.status ===
@@ -724,6 +739,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -755,6 +772,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -809,6 +828,8 @@ function serializeCommunityFeedItem(
     nickname:
       item.senderNickname ||
       "사용자",
+    character:
+      senderCharacter,
     text:
       item.text ||
       "",
@@ -1325,13 +1346,21 @@ async function messages(
       );
 
 
+    const communityCharacterMap =
+      await loadUserCharacterMap(
+        db,
+        list.map(item => item.senderId).filter(Boolean)
+      );
+
+
     const items =
       list.map(
         item =>
           serializeCommunityFeedItem(
             item,
             user,
-            myVoteMap
+            myVoteMap,
+            communityCharacterMap
           )
       );
 
@@ -1501,6 +1530,11 @@ async function sendMessage(
 
     messageDocument._id =
       insertResult.insertedId;
+
+    messageDocument.senderCharacter =
+      normalizeCharacterState(
+        user.character
+      );
 
 
     // 클라이언트가 전체 메시지 목록을 다시 조회하지 않고

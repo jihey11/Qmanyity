@@ -31,6 +31,11 @@ import {
   isAllowedEnum
 } from "../lib/api.js";
 
+import {
+  loadUserCharacterMap,
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 function jsonResponse(
   data,
@@ -128,6 +133,11 @@ function serializeBoardPost(
     authorNickname:
       post.authorNickname ||
       "사용자",
+
+    authorCharacter:
+      normalizeCharacterState(
+        post.authorCharacter
+      ),
 
     title:
       post.title ||
@@ -504,6 +514,19 @@ async function boardPosts(
       );
 
 
+    const authorCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        posts.map(post => post.authorId)
+      );
+
+    posts.forEach(post => {
+      post.authorCharacter =
+        authorCharacterMap.get(String(post.authorId)) ||
+        normalizeCharacterState(null);
+    });
+
+
     return jsonResponse({
       success: true,
       total:
@@ -809,6 +832,17 @@ async function boardPostDetail(
       normalizedLikeCount;
 
 
+    const detailCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        [post.authorId]
+      );
+
+    post.authorCharacter =
+      detailCharacterMap.get(String(post.authorId)) ||
+      normalizeCharacterState(null);
+
+
     const serializedPost =
       serializeBoardPost(
         post,
@@ -885,6 +919,11 @@ function serializeBoardComment(
     authorNickname:
       comment.authorNickname ||
       "사용자",
+
+    authorCharacter:
+      normalizeCharacterState(
+        comment.authorCharacter
+      ),
 
     content:
       comment.content ||
@@ -1108,6 +1147,19 @@ async function boardComments(
           }
         );
     }
+
+
+    const commentCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        newestComments.map(comment => comment.authorId)
+      );
+
+    newestComments.forEach(comment => {
+      comment.authorCharacter =
+        commentCharacterMap.get(String(comment.authorId)) ||
+        normalizeCharacterState(null);
+    });
 
 
     return jsonResponse({
@@ -1380,6 +1432,12 @@ async function createBoardComment(
     }
 
 
+    comment.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
+
+
     return jsonResponse(
       {
         success: true,
@@ -1561,6 +1619,12 @@ async function updateBoardComment(
         403
       );
     }
+
+
+    updated.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
 
 
     return jsonResponse({
@@ -2475,6 +2539,11 @@ async function createBoardPost(
     post._id =
       inserted.insertedId;
 
+    post.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
+
 
     return jsonResponse(
       {
@@ -2858,6 +2927,11 @@ async function updateBoardPost(
       quizResult.quizId;
     post.updatedAt =
       now;
+
+    post.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
 
     return jsonResponse({
       success: true,
