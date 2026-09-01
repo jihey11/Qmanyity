@@ -2572,6 +2572,10 @@ button:disabled {
 }
 
 .community-message {
+  /* 메시지 전체 영역을 실제 내용 너비만큼만 사용한다.
+     이전에는 블록이 최대 폭까지 늘어나 내 캐릭터/닉네임이
+     말풍선과 멀리 떨어져 보일 수 있었다. */
+  width: fit-content;
   max-width: 75%;
 
   margin-bottom: 13px;
@@ -2581,6 +2585,11 @@ button:disabled {
   margin-left: auto;
 
   text-align: right;
+}
+
+/* 내가 보낸 메시지의 캐릭터와 닉네임을 말풍선 오른쪽 기준으로 정렬 */
+.community-message.mine .community-message-user {
+  justify-content: flex-end;
 }
 
 .message-name {
