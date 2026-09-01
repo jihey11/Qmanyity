@@ -615,13 +615,19 @@ button:disabled {
   min-width: 0;
   min-height: 0;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .character-layer {
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
   width: 100%;
   height: 100%;
+  max-width: none;
+  max-height: none;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
   object-fit: contain;
   pointer-events: none;
   user-select: none;
@@ -5229,23 +5235,35 @@ canvas {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   border-radius: 16px;
   background: #f8fbff;
   border: 1px solid #e7eef8;
 }
 
 #costumePreviewStage {
-  width: min(100%, 260px);
+  width: min(82%, 260px);
   aspect-ratio: 692 / 638;
   flex: 0 0 auto;
   position: relative;
+  overflow: visible;
+
+  /* 내 캐릭터의 실제 렌더링 스테이지를 미리보기 박스 정중앙에 배치 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .costume-preview-character {
-  width: 100%;
-  height: 100%;
-  aspect-ratio: auto;
+  width: 82%;
+  height: auto;
+  aspect-ratio: 692 / 638;
   flex: 0 0 auto;
+  position: relative;
+  overflow: visible;
+
+  /* 동적으로 width가 변경되어도 항상 가운데 유지 */
+  margin: auto;
 }
 
 .costume-balance {
@@ -5371,10 +5389,13 @@ canvas {
 }
 
 .costume-item-character {
-  width: 92%;
+  /* 모든 코스튬 카드에서 기본 캐릭터 크기를 동일하게 유지한다. */
+  width: 54%;
   height: auto;
   aspect-ratio: 692 / 638;
   flex: 0 0 auto;
+  position: relative;
+  overflow: visible;
 }
 
 .costume-item-category {
@@ -5490,8 +5511,8 @@ canvas {
   }
 
   .costume-preview-character {
-    width: 100%;
-    height: 100%;
+    width: 82%;
+    height: auto;
   }
 
   .costume-shop-toolbar {
@@ -9461,6 +9482,7 @@ function getCharacterStageHtml(
             src="${escapeHtml(source)}"
             alt=""
             aria-hidden="true"
+            onload="applyCharacterLayerNaturalSize(this)"
           >
         `;
       })
@@ -9474,6 +9496,84 @@ function getCharacterStageHtml(
       ${images}
     </span>
   `;
+}
+
+
+const CHARACTER_REFERENCE_WIDTH = 692;
+const CHARACTER_REFERENCE_HEIGHT = 638;
+
+
+function getCharacterLayerNaturalRatio(image) {
+  const width = Number(image?.naturalWidth || CHARACTER_REFERENCE_WIDTH);
+  const height = Number(image?.naturalHeight || CHARACTER_REFERENCE_HEIGHT);
+
+  return {
+    width: Math.max(0.01, width / CHARACTER_REFERENCE_WIDTH),
+    height: Math.max(0.01, height / CHARACTER_REFERENCE_HEIGHT)
+  };
+}
+
+
+function updateCharacterPreviewScale(stage) {
+  if (!stage) return;
+
+  const isShopCard = stage.classList.contains("costume-item-character");
+  const isShopMain = stage.classList.contains("costume-preview-character");
+
+  if (!isShopCard && !isShopMain) {
+    return;
+  }
+
+  // 코스튬 목록에서는 모든 카드의 기본 캐릭터 크기를 동일하게 유지한다.
+  // 코스튬 PNG가 더 크더라도 본체는 줄어들지 않고 장식만 바깥으로 확장된다.
+  if (isShopCard) {
+    stage.style.width = "54%";
+    stage.style.height = "auto";
+    stage.style.aspectRatio = `${CHARACTER_REFERENCE_WIDTH} / ${CHARACTER_REFERENCE_HEIGHT}`;
+    return;
+  }
+
+  // 왼쪽 '내 캐릭터' 역시 장착한 코스튬의 원본 크기와 무관하게
+  // 기본 캐릭터 크기를 항상 동일하게 유지한다.
+  // 이전에는 큰 모자를 장착하면 largestWidthRatio 때문에 본체까지 축소됐다.
+  if (isShopMain) {
+    stage.style.width = "82%";
+    stage.style.height = "auto";
+    stage.style.aspectRatio = `${CHARACTER_REFERENCE_WIDTH} / ${CHARACTER_REFERENCE_HEIGHT}`;
+  }
+}
+
+
+function applyCharacterLayerNaturalSize(image) {
+  if (!image) return;
+
+  const stage = image.closest(".character-stage");
+  if (!stage) return;
+
+  const ratio = getCharacterLayerNaturalRatio(image);
+
+  // PNG 원본 캔버스가 692x638보다 크면 그 비율만큼 실제로 더 크게
+  // 렌더링한다. 예: 1306px 폭의 코스튬은 약 188.7% 폭으로 표시된다.
+  image.style.width = `${(ratio.width * 100).toFixed(4)}%`;
+  image.style.height = `${(ratio.height * 100).toFixed(4)}%`;
+  image.style.left = "50%";
+  image.style.top = "50%";
+  image.style.transform = "translate(-50%, -50%)";
+
+  updateCharacterPreviewScale(stage);
+}
+
+
+function refreshCharacterLayerSizing(stage) {
+  if (!stage) return;
+
+  stage.querySelectorAll(".character-layer").forEach(function(image) {
+    if (image.naturalWidth && image.naturalHeight) {
+      applyCharacterLayerNaturalSize(image);
+    }
+  });
+
+  updateCharacterPreviewScale(stage);
 }
 
 
@@ -9514,6 +9614,9 @@ function renderCharacterStage(
       image.dataset.characterLayer = layerName;
       image.alt = "";
       image.setAttribute("aria-hidden", "true");
+      image.addEventListener("load", function() {
+        applyCharacterLayerNaturalSize(image);
+      });
       stage.appendChild(image);
     }
 
@@ -9532,7 +9635,13 @@ function renderCharacterStage(
     }
 
     image.hidden = false;
+
+    if (image.complete && image.naturalWidth && image.naturalHeight) {
+      applyCharacterLayerNaturalSize(image);
+    }
   });
+
+  refreshCharacterLayerSizing(stage);
 }
 
 
@@ -9574,18 +9683,18 @@ function setCostumeShopMessage(message, type = "") {
 }
 
 function getCostumePreviewCharacter(item = null) {
+  // 상점의 각 카드 미리보기는 현재 사용자가 입고 있는 코스튬을 복사하지 않는다.
+  // 항상 기본 캐릭터에서 시작해 해당 카드의 코스튬 하나만 합성한다.
+  // 이렇게 해야 모자를 다시 장착해도 안경 카드 등에 모자가 같이 표시되지 않는다.
   const state = {
-    ...getCharacterState(
-      costumeShopData?.character ||
-      currentUser?.character
-    )
+    ...DEFAULT_CHARACTER_STATE
   };
 
   if (item?.layer && item?.asset) {
     state[item.layer] = item.asset;
   }
 
-  return state;
+  return getCharacterState(state);
 }
 
 function isCostumeEquipped(item) {
@@ -9798,6 +9907,12 @@ function renderCostumeShop() {
       </article>
     `;
   }).join("");
+
+  requestAnimationFrame(function() {
+    grid.querySelectorAll(".costume-item-character").forEach(function(stage) {
+      refreshCharacterLayerSizing(stage);
+    });
+  });
 }
 
 function selectCostumeCategory(category) {
