@@ -256,8 +256,12 @@ async function overview(request) {
   const { db } = auth;
 
   try {
-    // 관리자 화면을 열 때 과거의 비정상 displayOrder도 자동 복구한다.
-    await normalizeActiveCategoryDisplayOrder(db);
+    // 순서 복구는 보조 작업이다. 실패해도 관리자 화면은 정상적으로 연다.
+    try {
+      await normalizeActiveCategoryDisplayOrder(db);
+    } catch (orderError) {
+      console.warn("ADMIN_CATEGORY_ORDER_REPAIR_WARNING:", orderError);
+    }
 
     const [
       categories,
@@ -383,6 +387,74 @@ async function overview(request) {
   }
 }
 
+async function getNextCategoryDisplayOrder(db) {
+  const categories = db.collection("categories");
+
+  // active 카테고리만 보면 삭제된 카테고리의 displayOrder와 겹칠 수 있다.
+  // 예전에 displayOrder에 unique 인덱스가 만들어졌던 DB도 안전하게 처리하기 위해
+  // 비활성 카테고리까지 포함해서 현재 가장 큰 숫자 다음 값을 사용한다.
+  const last = await categories
+    .find({ displayOrder: { $type: "number" } })
+    .sort({ displayOrder: -1 })
+    .limit(1)
+    .project({ displayOrder: 1 })
+    .toArray();
+
+  let candidate = Math.max(0, Number(last[0]?.displayOrder || 0)) + 1;
+
+  // 혹시 숫자 타입이 섞여 있거나 동시에 추가 요청이 들어와도
+  // 이미 사용 중인 순서값은 건너뛴다.
+  for (let attempt = 0; attempt < 50; attempt++) {
+    const occupied = await categories.findOne(
+      { displayOrder: candidate },
+      { projection: { _id: 1 } }
+    );
+
+    if (!occupied) return candidate;
+    candidate += 1;
+  }
+
+  // 사실상 도달하지 않지만 마지막 안전장치다.
+  return Date.now();
+}
+
+function categoryNameQuery(name) {
+  return {
+    $regex: `^${String(name || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+    $options: "i"
+  };
+}
+
+async function restoreInactiveCategory(db, category, name) {
+  const now = new Date();
+  const displayOrder = await getNextCategoryDisplayOrder(db);
+  const nameLower = String(name || "").trim().toLocaleLowerCase("ko-KR");
+
+  const result = await db.collection("categories").findOneAndUpdate(
+    {
+      _id: category._id,
+      active: { $ne: true }
+    },
+    {
+      $set: {
+        name,
+        nameLower,
+        active: true,
+        displayOrder,
+        updatedAt: now
+      },
+      $unset: {
+        deletedAt: ""
+      }
+    },
+    {
+      returnDocument: "after"
+    }
+  );
+
+  return result || null;
+}
+
 async function categoryCreate(request) {
   const auth = await getAdminAuth(request);
   if (auth.error) return auth.error;
@@ -398,82 +470,183 @@ async function categoryCreate(request) {
       );
     }
 
-    const duplicate = await auth.db.collection("categories").findOne({
-      name: {
-        $regex: `^${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-        $options: "i"
-      },
-      active: true
+    const categories = auth.db.collection("categories");
+
+    // 화면에는 active:true만 보이므로, 삭제된 같은 이름의 카테고리가 DB에 남아 있으면
+    // 사용자는 중복을 볼 수 없지만 MongoDB의 과거 unique 인덱스에는 걸릴 수 있다.
+    // 따라서 active 여부와 상관없이 먼저 같은 이름을 찾는다.
+    const sameNameCategory = await categories.findOne({
+      name: categoryNameQuery(name)
     });
 
-    if (duplicate) {
+    if (sameNameCategory?.active === true) {
       return jsonResponse(
         { success: false, message: "이미 사용 중인 카테고리 이름입니다." },
         409
       );
     }
 
-    // 먼저 기존 순서값을 1,2,3...으로 정리한다.
-    const currentCategories =
-      await normalizeActiveCategoryDisplayOrder(auth.db);
+    // 삭제된 동일 카테고리가 있으면 새 문서를 만들지 않고 복구한다.
+    // 이렇게 하면 name/nameLower에 legacy unique 인덱스가 남아 있어도 충돌하지 않는다.
+    if (sameNameCategory) {
+      let restored = null;
 
-    const etcCategory = currentCategories.find(isEtcCategory) || null;
-    const normalCount = currentCategories.filter(
-      category => !isEtcCategory(category)
-    ).length;
-
-    const now = new Date();
-    const id = `custom-${Date.now()}-${randomBytes(3).toString("hex")}`;
-
-    // 새 카테고리는 항상 기타 바로 앞에 들어간다.
-    // 기타가 있다면 먼저 한 칸 뒤로 이동시켜 순서 중복도 방지한다.
-    if (etcCategory) {
-      await auth.db.collection("categories").updateOne(
-        { _id: etcCategory._id, active: true },
-        {
-          $set: {
-            displayOrder: normalCount + 2,
-            updatedAt: now
-          }
+      try {
+        restored = await restoreInactiveCategory(
+          auth.db,
+          sameNameCategory,
+          name
+        );
+      } catch (restoreError) {
+        // displayOrder legacy unique 인덱스와 동시에 충돌한 경우 새 순서값으로 한 번 더 시도한다.
+        if (restoreError?.code === 11000) {
+          restored = await restoreInactiveCategory(
+            auth.db,
+            sameNameCategory,
+            name
+          );
+        } else {
+          throw restoreError;
         }
-      );
+      }
+
+      if (!restored) {
+        const raced = await categories.findOne({
+          name: categoryNameQuery(name),
+          active: true
+        });
+
+        if (raced) {
+          return jsonResponse(
+            { success: false, message: "이미 사용 중인 카테고리 이름입니다." },
+            409
+          );
+        }
+
+        return jsonResponse(
+          { success: false, message: "카테고리를 다시 활성화하지 못했습니다." },
+          409
+        );
+      }
+
+      try {
+        const normalizedCategories =
+          await normalizeActiveCategoryDisplayOrder(auth.db);
+        const normalized = normalizedCategories.find(
+          item => String(item._id) === String(restored._id)
+        );
+        if (normalized) Object.assign(restored, normalized);
+      } catch (orderError) {
+        console.warn("ADMIN_CATEGORY_ORDER_NORMALIZE_WARNING:", orderError);
+      }
+
+      return jsonResponse({
+        success: true,
+        restored: true,
+        category: serializeAdminCategory(restored)
+      });
     }
 
+    const now = new Date();
     const document = {
-      _id: id,
+      _id: `custom-${Date.now()}-${randomBytes(3).toString("hex")}`,
       name,
+      // 예전 DB에 nameLower unique 인덱스가 남아 있는 경우도 호환한다.
+      nameLower: name.toLocaleLowerCase("ko-KR"),
       active: true,
       isFixed: false,
-      displayOrder: normalCount + 1,
+      displayOrder: await getNextCategoryDisplayOrder(auth.db),
       createdAt: now,
       updatedAt: now
     };
 
-    try {
-      await auth.db.collection("categories").insertOne(document);
-    } catch (insertError) {
-      // 삽입 실패 시에도 기존 카테고리 순서를 정상 상태로 복원한다.
-      await normalizeActiveCategoryDisplayOrder(auth.db).catch(() => {});
-      throw insertError;
+    // 동시에 카테고리를 추가하는 경우 displayOrder가 겹칠 수 있으므로
+    // displayOrder 중복이면 새 순서값을 받아 몇 번 재시도한다.
+    let inserted = false;
+
+    for (let attempt = 0; attempt < 5 && !inserted; attempt++) {
+      try {
+        await categories.insertOne(document);
+        inserted = true;
+      } catch (insertError) {
+        if (insertError?.code !== 11000) throw insertError;
+
+        // 같은 이름이 이미 저장된 경우는 화면 갱신으로 해결할 수 있도록 명확히 안내한다.
+        const duplicateName = await categories.findOne({
+          name: categoryNameQuery(name)
+        });
+
+        if (duplicateName) {
+          if (duplicateName.active === true) {
+            return jsonResponse(
+              { success: false, message: "이미 사용 중인 카테고리 이름입니다." },
+              409
+            );
+          }
+
+          const restored = await restoreInactiveCategory(
+            auth.db,
+            duplicateName,
+            name
+          );
+
+          if (restored) {
+            try {
+              await normalizeActiveCategoryDisplayOrder(auth.db);
+            } catch (orderError) {
+              console.warn("ADMIN_CATEGORY_ORDER_NORMALIZE_WARNING:", orderError);
+            }
+
+            return jsonResponse({
+              success: true,
+              restored: true,
+              category: serializeAdminCategory(restored)
+            });
+          }
+        }
+
+        document.displayOrder = await getNextCategoryDisplayOrder(auth.db);
+      }
     }
 
-    const normalizedCategories =
-      await normalizeActiveCategoryDisplayOrder(auth.db);
+    if (!inserted) {
+      return jsonResponse(
+        {
+          success: false,
+          message: "카테고리 순서값 충돌을 해결하지 못했습니다. 다시 시도해주세요."
+        },
+        409
+      );
+    }
 
-    const normalizedDocument =
-      normalizedCategories.find(
+    // 순서 정리는 보조 작업이다. 실패해도 생성 자체는 성공으로 유지한다.
+    try {
+      const normalizedCategories =
+        await normalizeActiveCategoryDisplayOrder(auth.db);
+      const normalizedDocument = normalizedCategories.find(
         category => String(category._id) === String(document._id)
-      ) || document;
+      );
+      if (normalizedDocument) Object.assign(document, normalizedDocument);
+    } catch (orderError) {
+      console.warn("ADMIN_CATEGORY_ORDER_NORMALIZE_WARNING:", orderError);
+    }
 
     return jsonResponse({
       success: true,
-      category: serializeAdminCategory(normalizedDocument)
+      category: serializeAdminCategory(document)
     });
   } catch (error) {
     console.error("ADMIN_CATEGORY_CREATE_ERROR:", error);
+
     return jsonResponse(
-      { success: false, message: "카테고리를 추가하지 못했습니다." },
-      500
+      {
+        success: false,
+        message:
+          error?.code === 11000
+            ? "숨겨진 기존 카테고리 또는 순서값과 충돌했습니다. 관리자 페이지를 새로고침한 뒤 다시 시도해주세요."
+            : "카테고리를 추가하지 못했습니다."
+      },
+      error?.code === 11000 ? 409 : 500
     );
   }
 }
@@ -545,7 +718,11 @@ async function categoryUpdate(request) {
     category.name = name;
     category.updatedAt = now;
 
-    await normalizeActiveCategoryDisplayOrder(auth.db);
+    try {
+      await normalizeActiveCategoryDisplayOrder(auth.db);
+    } catch (orderError) {
+      console.warn("ADMIN_CATEGORY_ORDER_NORMALIZE_WARNING:", orderError);
+    }
 
     return jsonResponse({
       success: true,
@@ -626,7 +803,11 @@ async function categoryDelete(request) {
       )
     ]);
 
-    await normalizeActiveCategoryDisplayOrder(auth.db);
+    try {
+      await normalizeActiveCategoryDisplayOrder(auth.db);
+    } catch (orderError) {
+      console.warn("ADMIN_CATEGORY_ORDER_NORMALIZE_WARNING:", orderError);
+    }
 
     return jsonResponse({
       success: true,
