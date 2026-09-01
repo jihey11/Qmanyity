@@ -121,6 +121,64 @@ function serializeAdminCategory(category) {
   };
 }
 
+function isEtcCategory(category) {
+  return (
+    String(category?._id || category?.id || "") === "etc" ||
+    String(category?.name || "").trim() === "기타"
+  );
+}
+
+function sortCategoriesWithEtcLast(categories) {
+  const list = Array.isArray(categories) ? [...categories] : [];
+  const normal = list.filter(category => !isEtcCategory(category));
+  const etc = list.filter(category => isEtcCategory(category));
+  return [...normal, ...etc];
+}
+
+// 새 카테고리를 추가한 뒤 DB의 displayOrder도 다시 정리한다.
+// 이렇게 하면 기존에 기타 뒤에 생성된 사용자 카테고리도 모두
+// 기타 앞으로 이동하고, 이후 추가되는 카테고리도 기타 바로 앞에 쌓인다.
+async function normalizeActiveCategoryDisplayOrder(db) {
+  const categories = await db.collection("categories")
+    .find({ active: true })
+    .sort({ displayOrder: 1, name: 1 })
+    .project({ name: 1, displayOrder: 1 })
+    .toArray();
+
+  const ordered = sortCategoriesWithEtcLast(categories);
+
+  const operations = ordered
+    .map((category, index) => {
+      const displayOrder = index + 1;
+
+      if (Number(category.displayOrder || 0) === displayOrder) {
+        return null;
+      }
+
+      return {
+        updateOne: {
+          filter: { _id: category._id },
+          update: {
+            $set: {
+              displayOrder,
+              updatedAt: new Date()
+            }
+          }
+        }
+      };
+    })
+    .filter(Boolean);
+
+  if (operations.length) {
+    await db.collection("categories").bulkWrite(operations);
+  }
+
+  return ordered.map((category, index) => ({
+    ...category,
+    displayOrder: index + 1
+  }));
+}
+
 function serializeAdminQuiz(quiz, writerMap = new Map()) {
   return {
     id: quiz._id?.toString() || "",
@@ -280,7 +338,7 @@ async function overview(request) {
         posts: Number(postCount || 0),
         chats: Number(chatCount || 0)
       },
-      categories: categories.map(serializeAdminCategory),
+      categories: sortCategoriesWithEtcLast(categories).map(serializeAdminCategory),
       quizzes: quizzes.map(quiz => serializeAdminQuiz(quiz, writerMap)),
       posts: posts.map(serializeAdminPost),
       chatMessages: chatMessages.map(serializeAdminChatMessage)
@@ -348,9 +406,17 @@ async function categoryCreate(request) {
 
     await auth.db.collection("categories").insertOne(document);
 
+    const normalizedCategories =
+      await normalizeActiveCategoryDisplayOrder(auth.db);
+
+    const normalizedDocument =
+      normalizedCategories.find(
+        category => String(category._id) === String(document._id)
+      ) || document;
+
     return jsonResponse({
       success: true,
-      category: serializeAdminCategory(document)
+      category: serializeAdminCategory(normalizedDocument)
     });
   } catch (error) {
     console.error("ADMIN_CATEGORY_CREATE_ERROR:", error);

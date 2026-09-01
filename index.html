@@ -6180,7 +6180,7 @@ canvas {
   <div class="page-header">
     <div>
       <h2>코스튬 상점</h2>
-      <p>보유한 점수로 코스튬을 구매하세요</p>
+      <p>보유한 점수로 코스튬을 구매하고 캐릭터에 장착하는 공간입니다.</p>
     </div>
   </div>
 
@@ -6244,7 +6244,7 @@ canvas {
       </h2>
 
       <p>
-        내 계정 정보와 Qmanyity 활동 정보를 확인하고 수정해보세요
+        내 계정 정보와 Qmanyity 활동 정보를 확인하고 수정할 수 있습니다.
       </p>
 
     </div>
@@ -14809,8 +14809,9 @@ function applyHomeDataResult(
 ) {
 
   homeCategories =
-    result.categories ||
-    [];
+    sortCategoriesWithEtcLast(
+      result.categories || []
+    );
 
   homeQuizzes =
     result.quizzes ||
@@ -15031,6 +15032,44 @@ function renderRecommendedQuiz() {
 /* =========================================================
    카테고리
 ========================================================= */
+
+// "전체"는 항상 맨 앞, "기타"는 항상 맨 마지막에 표시한다.
+// 관리자가 새 카테고리를 추가해도 기타 뒤로 밀리지 않도록
+// 서버에서 받은 기존 순서는 유지하면서 위치만 보정한다.
+function sortCategoriesWithEtcLast(categories) {
+
+  const list = Array.isArray(categories)
+    ? [...categories]
+    : [];
+
+  const all = [];
+  const normal = [];
+  const etc = [];
+
+  list.forEach(function(category) {
+
+    const id = String(category?.id || category?._id || "");
+    const name = String(category?.name || "").trim();
+
+    if (id === "all" || name === "전체") {
+      all.push(category);
+      return;
+    }
+
+    if (id === "etc" || name === "기타") {
+      etc.push(category);
+      return;
+    }
+
+    normal.push(category);
+  });
+
+  return [
+    ...all,
+    ...normal,
+    ...etc
+  ];
+}
 
 function renderCategories() {
 
@@ -17655,7 +17694,9 @@ async function loadAdminData(force = false) {
 
     adminData = {
       counts: result.counts || { categories: 0, quizzes: 0, posts: 0, chats: 0 },
-      categories: Array.isArray(result.categories) ? result.categories : [],
+      categories: sortCategoriesWithEtcLast(
+        Array.isArray(result.categories) ? result.categories : []
+      ),
       quizzes: Array.isArray(result.quizzes) ? result.quizzes : [],
       posts: Array.isArray(result.posts) ? result.posts : [],
       chatMessages: Array.isArray(result.chatMessages) ? result.chatMessages : []
@@ -17663,7 +17704,7 @@ async function loadAdminData(force = false) {
 
     // 관리자에서 카테고리를 추가/수정/삭제한 직후에도
     // 퀴즈 작성/수정 셀렉트에 최신 카테고리가 바로 나타나도록 동기화한다.
-    homeCategories = [
+    homeCategories = sortCategoriesWithEtcLast([
       { id: "all", name: "전체" },
       ...adminData.categories.map(function(category) {
         return {
@@ -17672,7 +17713,7 @@ async function loadAdminData(force = false) {
           isFixed: Boolean(category.isFixed)
         };
       })
-    ];
+    ]);
 
     adminDataLoadedAt = Date.now();
     renderAdminData();
