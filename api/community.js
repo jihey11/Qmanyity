@@ -15,6 +15,11 @@ import {
   guardApiRequest
 } from "../lib/api.js";
 
+import {
+  loadUserCharacterMap,
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 
 
@@ -98,11 +103,6 @@ async function getAuth(
 
 // =========================================================
 // 관리자 권한
-//
-// 관리자 여부는 브라우저에서 전달받은 값이 아니라
-// MongoDB의 users 문서에 저장된 role을 서버가 직접 확인한다.
-// 일반 사용자가 개발자 도구에서 버튼을 강제로 실행하거나
-// API를 직접 호출해도 이 검사를 통과할 수 없다.
 // =========================================================
 
 function isAdminUser(
@@ -217,10 +217,6 @@ function getGlobalRoom(
 
 // =========================================================
 // 전체 커뮤니티 접근 권한
-//
-// 8단계부터 별도의 사용자 채팅방은 사용하지 않는다.
-// 기존 DB의 사용자 채팅방 데이터는 삭제하지 않지만 API에서는
-// global 전체 커뮤니티만 접근할 수 있다.
 // =========================================================
 
 async function getRoomAccess(
@@ -663,8 +659,18 @@ async function ensureExistingGlobalItemsInFeed(
 function serializeCommunityFeedItem(
   item,
   user,
-  myVoteMap = new Map()
+  myVoteMap = new Map(),
+  characterMap = new Map()
 ) {
+
+  // 항상 users 컬렉션의 최신 캐릭터를 우선 사용한다.
+  // 그래야 사용자가 코스튬을 바꾼 뒤 과거 채팅/공지/투표에서도
+  // 다른 사람에게 새 코스튬이 보인다.
+  const senderCharacter =
+    characterMap.get(String(item.senderId || "")) ||
+    item.senderCharacter ||
+    normalizeCharacterState(null);
+
 
   if (
     item.status ===
@@ -724,6 +730,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -755,6 +763,8 @@ function serializeCommunityFeedItem(
       authorNickname:
         item.senderNickname ||
         "관리자",
+      authorCharacter:
+        senderCharacter,
       createdAt:
         item.createdAt,
       updatedAt:
@@ -809,6 +819,8 @@ function serializeCommunityFeedItem(
     nickname:
       item.senderNickname ||
       "사용자",
+    character:
+      senderCharacter,
     text:
       item.text ||
       "",
@@ -1325,13 +1337,21 @@ async function messages(
       );
 
 
+    const communityCharacterMap =
+      await loadUserCharacterMap(
+        db,
+        list.map(item => item.senderId).filter(Boolean)
+      );
+
+
     const items =
       list.map(
         item =>
           serializeCommunityFeedItem(
             item,
             user,
-            myVoteMap
+            myVoteMap,
+            communityCharacterMap
           )
       );
 
@@ -1501,6 +1521,11 @@ async function sendMessage(
 
     messageDocument._id =
       insertResult.insertedId;
+
+    messageDocument.senderCharacter =
+      normalizeCharacterState(
+        user.character
+      );
 
 
     // 클라이언트가 전체 메시지 목록을 다시 조회하지 않고

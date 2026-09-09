@@ -31,6 +31,11 @@ import {
   isAllowedEnum
 } from "../lib/api.js";
 
+import {
+  loadUserCharacterMap,
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 function jsonResponse(
   data,
@@ -94,9 +99,6 @@ async function getAuth(
 
 // =========================================================
 // 게시판 게시물
-//
-// 20단계부터 게시판 기능은 api/board.js에서 독립적으로 처리한다.
-// 커뮤니티 채팅/공지/투표와 게시판 API를 분리해 유지보수 범위를 줄인다.
 // =========================================================
 
 function serializeBoardPost(
@@ -128,6 +130,11 @@ function serializeBoardPost(
     authorNickname:
       post.authorNickname ||
       "사용자",
+
+    authorCharacter:
+      normalizeCharacterState(
+        post.authorCharacter
+      ),
 
     title:
       post.title ||
@@ -504,6 +511,19 @@ async function boardPosts(
       );
 
 
+    const authorCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        posts.map(post => post.authorId)
+      );
+
+    posts.forEach(post => {
+      post.authorCharacter =
+        authorCharacterMap.get(String(post.authorId)) ||
+        normalizeCharacterState(null);
+    });
+
+
     return jsonResponse({
       success: true,
       total:
@@ -809,6 +829,17 @@ async function boardPostDetail(
       normalizedLikeCount;
 
 
+    const detailCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        [post.authorId]
+      );
+
+    post.authorCharacter =
+      detailCharacterMap.get(String(post.authorId)) ||
+      normalizeCharacterState(null);
+
+
     const serializedPost =
       serializeBoardPost(
         post,
@@ -853,9 +884,6 @@ async function boardPostDetail(
 
 // =========================================================
 // 게시판 댓글
-//
-// 16단계: 게시물 상세 화면에서 댓글 목록/작성/수정/삭제를 처리한다.
-// 댓글 수정/삭제 권한은 브라우저 값이 아니라 로그인 사용자의 ObjectId로 검사한다.
 // =========================================================
 
 function serializeBoardComment(
@@ -885,6 +913,11 @@ function serializeBoardComment(
     authorNickname:
       comment.authorNickname ||
       "사용자",
+
+    authorCharacter:
+      normalizeCharacterState(
+        comment.authorCharacter
+      ),
 
     content:
       comment.content ||
@@ -1108,6 +1141,19 @@ async function boardComments(
           }
         );
     }
+
+
+    const commentCharacterMap =
+      await loadUserCharacterMap(
+        auth.db,
+        newestComments.map(comment => comment.authorId)
+      );
+
+    newestComments.forEach(comment => {
+      comment.authorCharacter =
+        commentCharacterMap.get(String(comment.authorId)) ||
+        normalizeCharacterState(null);
+    });
 
 
     return jsonResponse({
@@ -1380,6 +1426,12 @@ async function createBoardComment(
     }
 
 
+    comment.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
+
+
     return jsonResponse(
       {
         success: true,
@@ -1561,6 +1613,12 @@ async function updateBoardComment(
         403
       );
     }
+
+
+    updated.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
 
 
     return jsonResponse({
@@ -1795,10 +1853,6 @@ async function deleteBoardComment(
 
 // =========================================================
 // 게시물 좋아요
-//
-// 17단계: 토글 명령이 아니라 원하는 최종 상태(liked)를 서버에 전달한다.
-// 같은 요청이 재전송되어도 상태가 다시 뒤집히지 않으며,
-// boardLikes의 postId + userId UNIQUE 인덱스가 중복 좋아요를 DB에서도 차단한다.
 // =========================================================
 
 async function setBoardLike(
@@ -2475,6 +2529,11 @@ async function createBoardPost(
     post._id =
       inserted.insertedId;
 
+    post.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
+
 
     return jsonResponse(
       {
@@ -2858,6 +2917,11 @@ async function updateBoardPost(
       quizResult.quizId;
     post.updatedAt =
       now;
+
+    post.authorCharacter =
+      normalizeCharacterState(
+        auth.user.character
+      );
 
     return jsonResponse({
       success: true,

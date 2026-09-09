@@ -16,6 +16,10 @@ import {
   isAllowedEnum
 } from "../lib/api.js";
 
+import {
+  normalizeCharacterState
+} from "../lib/character.js";
+
 
 // =========================================================
 // 기본 설정
@@ -253,7 +257,7 @@ function getHomePublicUser(
     nickname: user.nickname || "사용자",
     point: Number(user.point || 0),
     totalScore: Number(user.totalScore || 0),
-    character: user.character || "default",
+    character: normalizeCharacterState(user.character),
     role: user.role || "USER"
   };
 }
@@ -1227,7 +1231,8 @@ async function home(
               pipeline: [
                 {
                   $project: {
-                    nickname: 1
+                    nickname: 1,
+                    character: 1
                   }
                 },
                 {
@@ -1546,6 +1551,15 @@ async function home(
               quiz.writerInfo?.[0]
                 ?.nickname ||
               "알 수 없음",
+
+            writerId:
+              quiz.writerId?.toString() ||
+              "",
+
+            writerCharacter:
+              normalizeCharacterState(
+                quiz.writerInfo?.[0]?.character
+              ),
 
             like:
               Number(
@@ -2477,15 +2491,6 @@ async function submitAnswer(
 
           // -------------------------------------------------
           // 현재 버전의 풀이 기록을 한 번의 MongoDB 조회로 요약한다.
-          //
-          // 기존에는 아래 정보를 각각 findOne()으로 조회했다.
-          // - 이미 정답을 맞혔는지
-          // - 가장 최근 오답 시간
-          // - 이전 풀이가 있는지
-          // - 이전 오답이 있는지
-          //
-          // 이 네 번의 왕복을 aggregate 한 번으로 줄여
-          // Vercel ↔ MongoDB 네트워크 지연을 크게 줄인다.
           // -------------------------------------------------
 
           const attemptSummaryRows =
