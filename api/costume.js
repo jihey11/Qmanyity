@@ -19,6 +19,7 @@ import {
   COSTUME_SHOP_CONFIG,
   getActiveCostumeItems,
   getCostumeItemById,
+  getCostumePrice,
   isEquipLayer
 } from "../lib/costume.js";
 
@@ -94,17 +95,23 @@ function serializeShop(user) {
     point: Number(user.point || 0),
     character: normalizeCharacterState(user.character),
     ownedCostumes: inventory,
-    items: items.map(item => ({
-      id: item.id,
-      name: item.name,
-      description: item.description,
-      category: item.category,
-      layer: item.layer,
-      asset: item.asset,
-      price: item.price,
-      owned: testMode || inventory.includes(item.id),
-      freeTest: testMode
-    }))
+    items: items.map(item => {
+      const price = getCostumePrice(item);
+      const owned = testMode || inventory.includes(item.id);
+
+      return {
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        category: item.category,
+        layer: item.layer,
+        asset: item.asset,
+        price,
+        owned,
+        affordable: owned || (price != null && Number(user.point || 0) >= price),
+        freeTest: testMode
+      };
+    })
   };
 }
 
@@ -290,7 +297,7 @@ async function purchaseCostume(request) {
       return jsonResponse({ success: false, message: "존재하지 않는 코스튬입니다." }, 404);
     }
 
-    const price = Number(item.price);
+    const price = getCostumePrice(item);
     if (!Number.isInteger(price) || price < 0) {
       return jsonResponse({
         success: false,
@@ -341,7 +348,9 @@ async function purchaseCostume(request) {
       success: true,
       message: `${item.name}을(를) 구매했습니다.`,
       point: Number(updated.point || 0),
-      ownedCostumes: updated.costumeInventory || []
+      ownedCostumes: updated.costumeInventory || [],
+      purchasedItemId: item.id,
+      price
     });
   } catch (error) {
     console.error("COSTUME_PURCHASE_ERROR:", error);

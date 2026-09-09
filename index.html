@@ -9835,7 +9835,10 @@ function renderCostumeShop() {
 
   const testNotice = el("costumeTestNotice");
   if (testNotice) {
-    testNotice.style.display = shop.testMode ? "block" : "none";
+    testNotice.style.display = "block";
+    testNotice.textContent = shop.testMode
+      ? "테스트 기간에는 점수를 사용하지 않고 원하는 코스튬을 바로 장착할 수 있습니다."
+      : "코스튬은 점수로 한 번 구매하면 계속 보유할 수 있습니다. 구매한 코스튬만 장착할 수 있습니다.";
   }
 
   const categories = [
@@ -9889,11 +9892,22 @@ function renderCostumeShop() {
       : `equipCostume('${escapeHtml(item.id)}')`;
 
     if (!shop.testMode && !item.owned) {
-      buttonText = item.price == null ? "가격 설정 대기" : "구매하기";
+      const affordable = item.affordable !== false &&
+        item.price != null &&
+        Number(shop.point || 0) >= Number(item.price || 0);
+
+      if (item.price == null) {
+        buttonText = "가격 설정 대기";
+        buttonAction = "";
+      } else if (!affordable) {
+        buttonText = "점수 부족";
+        buttonAction = "";
+      } else {
+        buttonText = "구매하기";
+        buttonAction = `purchaseCostume('${escapeHtml(item.id)}')`;
+      }
+
       buttonClass = "costume-item-action";
-      buttonAction = item.price == null
-        ? ""
-        : `purchaseCostume('${escapeHtml(item.id)}')`;
     }
 
     return `
@@ -10055,6 +10069,25 @@ async function unequipCostume(layer) {
 }
 
 async function purchaseCostume(itemId) {
+  const item = (costumeShopData?.items || []).find(
+    costume => String(costume.id) === String(itemId)
+  );
+
+  if (!item || item.owned) return;
+
+  const price = Number(item.price);
+  if (!Number.isInteger(price) || price < 0) {
+    setCostumeShopMessage("가격이 설정되지 않은 코스튬입니다.", "error");
+    return;
+  }
+
+  const currencyName = costumeShopData?.currencyName || "점수";
+  const confirmed = confirm(
+    `${item.name}을(를) ${formatNumber(price)} ${currencyName}로 구매하시겠습니까?`
+  );
+
+  if (!confirmed) return;
+
   const result = await costumePost("purchase", { itemId });
   if (result) {
     await loadCostumeShop(true);
